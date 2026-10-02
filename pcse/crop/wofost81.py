@@ -204,6 +204,13 @@ class Wofost81(SimulationObject):
         self._connect_signal(self._on_CROP_FINISH, signal=signals.crop_finish)
     #---------------------------------------------------------------------------
     @staticmethod
+    def _limit_reallocation_request(requested, living_donor, same_day_death):
+        """Return the physically available donor-limited reallocation rate."""
+        available = max(0.0, living_donor - same_day_death)
+        return min(max(0.0, requested), available)
+
+    #---------------------------------------------------------------------------
+    @staticmethod
     def _check_carbon_balance(day, DMI, GASS, MRES, CVF, pf):
         (FR, FL, FS, FO) = pf
         checksum = (GASS - MRES - (FR+(FL+FS+FO)*(1.-FR)) * DMI/CVF) * \
@@ -299,10 +306,12 @@ class Wofost81(SimulationObject):
 
         # Reallocation is donor-limited after same-day senescence. Newly grown
         # biomass is not made immediately available for reallocation.
-        leaf_available = max(0.0, k.WLV - self.lv_dynamics.rates.DRLV)
-        stem_available = max(0.0, k.WST - self.st_dynamics.rates.DRST)
-        r.REALLOC_LV = min(requested_realloc_lv, leaf_available)
-        r.REALLOC_ST = min(requested_realloc_st, stem_available)
+        r.REALLOC_LV = self._limit_reallocation_request(
+            requested_realloc_lv, k.WLV, self.lv_dynamics.rates.DRLV
+        )
+        r.REALLOC_ST = self._limit_reallocation_request(
+            requested_realloc_st, k.WST, self.st_dynamics.rates.DRST
+        )
         r.REALLOC_SO = (r.REALLOC_LV + r.REALLOC_ST) * p.REALLOC_EFFICIENCY
 
         # Recompute stem net growth with the committed transfer and calculate
