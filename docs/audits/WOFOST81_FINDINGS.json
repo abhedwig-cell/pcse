@@ -1,0 +1,14 @@
+{
+  "authority": {
+    "upstream": "ajwdewit/pcse",
+    "commit": "67a28e56b0e34655f8d60b0b4a254a7c81efbb2f"
+  },
+  "findings": [
+    {"id":"WOFOST81-SNOMIN-01","status":"CONFIRMED_DEFECT","confidence":"very_high","component":"SNOMIN","summary":"NH4 immobilisation limiter has reversed algebraic sign."},
+    {"id":"WOFOST81-TIME-01","status":"STRUCTURAL_ASSUMPTION","confidence":"high","component":"time integration","summary":"Current implementation is qualified as a discrete daily model, not a generic delt integrator."},
+    {"id":"WOFOST81-PART-01","status":"THEORY_CODE_DISCREPANCY","confidence":"high","component":"partitioning","summary":"DVS_Partitioning_N documentation describes N stress while implementation modifier uses RFTRA."},
+    {"id":"WOFOST81-ROOT-01","status":"STRUCTURAL_ASSUMPTION","confidence":"medium","component":"root interface","summary":"Water and N uptake use different implicit spatial root activity assumptions."},
+    {"id":"WOFOST81-SNOMIN-03","status":"STRUCTURAL_ASSUMPTION","confidence":"high","component":"SNOMIN","summary":"Daily operator ordering determines competition among uptake, reactions and transport."},
+    {"id":"WOFOST81-SNOMIN-04","status":"OPEN","confidence":"medium","component":"SNOMIN transport","summary":"Finite-pool positivity under extreme daily transport is not yet qualified."}
+  ]
+}
