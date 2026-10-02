@@ -1,0 +1,22 @@
+name: WOFOST81 Scientific Qualification
+
+on:
+  push:
+    branches:
+      - audit/wofost81-scientific-qualification
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  scientific-qualification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install PCSE
+        run: python -m pip install -e .
+      - name: Run WOFOST81 scientific qualification tests
+        run: python -m unittest -v pcse.tests.test_snomin_scientific
