@@ -6,11 +6,12 @@
   "findings": [
     {
       "id": "WOFOST81-SNOMIN-01",
-      "status": "REPAIR_IMPLEMENTED_UNQUALIFIED",
+      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
       "confidence": "very_high",
       "component": "SNOMIN",
       "summary": "NH4 immobilisation limiter has reversed algebraic sign.",
-      "repair_commit": "9dcb1c1e76db4ef694491f16cd42d543b031d390"
+      "repair_commit": "9dcb1c1e76db4ef694491f16cd42d543b031d390",
+      "qualification_run": "36981833631"
     },
     {
       "id": "WOFOST81-TIME-01",
@@ -42,11 +43,19 @@
     },
     {
       "id": "WOFOST81-SNOMIN-04",
-      "status": "REPAIR_IMPLEMENTED_UNQUALIFIED",
+      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
       "confidence": "very_high",
       "component": "SNOMIN transport",
       "summary": "Unbounded advective export can exceed a finite NH4/NO3 pool; production transport now limits donor export and preserves internal transfer mass.",
-      "repair_commit": "8f3f3d03bfde9be08c93fc8b315664151ab75f94"
+      "repair_commit": "8f3f3d03bfde9be08c93fc8b315664151ab75f94",
+      "qualification_run": "36981833631"
+    },
+    {
+      "id": "WOFOST81-NBAL-01",
+      "status": "OPEN_HIGH_PRIORITY",
+      "confidence": "high",
+      "component": "crop N bookkeeping",
+      "summary": "Crop N balance is checked in calc_rates before same-day rates are integrated, so it verifies the prior integrated state and may not independently check the terminal crop-day update."
     }
   ]
 }
