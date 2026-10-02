@@ -135,8 +135,57 @@ class TestSNOMINScientificInvariants(unittest.TestCase):
 
         rin, rout = nitrate.calculate_NO3_flow_rates(layers, flow, no3, sm)
 
+        # The low-level raw tracer formula is intentionally characterized here.
+        # Production transport is limited by SoilInorganicNModel.calculate_flow_rates.
         self.assertGreater(rout[0], no3[0])
         self.assertAlmostEqual(rin[0], 0.0)
+
+    def test_snomin04_production_transport_limits_no3_to_finite_pool(self):
+        model = SNOMIN.SoilInorganicNModel()
+        layers = [self._layer(0.10)]
+        sm = np.array([0.10])
+        nh4 = np.array([0.0])
+        no3 = np.array([0.01])
+        flow = np.array([0.0, 0.20])
+
+        _, _, rin, rout = model.calculate_flow_rates(
+            layers, flow, 0.0, nh4, no3, sm, delt=1.0
+        )
+
+        self.assertAlmostEqual(rout[0], no3[0], places=14)
+        self.assertAlmostEqual(rin[0], 0.0, places=14)
+        self.assertGreaterEqual(no3[0] - rout[0], 0.0)
+
+    def test_snomin04_internal_transfer_uses_limited_donor_flux(self):
+        model = SNOMIN.SoilInorganicNModel()
+        layers = [self._layer(0.10), self._layer(0.10)]
+        sm = np.array([0.10, 0.10])
+        nh4 = np.zeros(2)
+        no3 = np.array([0.01, 0.0])
+        flow = np.array([0.0, 0.20, 0.0])
+
+        _, _, rin, rout = model.calculate_flow_rates(
+            layers, flow, 0.0, nh4, no3, sm, delt=1.0
+        )
+
+        self.assertAlmostEqual(rout[0], 0.01, places=14)
+        self.assertAlmostEqual(rin[1], 0.01, places=14)
+        self.assertAlmostEqual(rin.sum(), rout.sum(), places=14)
+
+    def test_snomin04_production_transport_limits_nh4_to_finite_pool(self):
+        model = SNOMIN.SoilInorganicNModel()
+        layers = [self._layer(0.10)]
+        sm = np.array([0.10])
+        nh4 = np.array([0.01])
+        no3 = np.array([0.0])
+        flow = np.array([0.0, 0.20])
+
+        _, rout, _, _ = model.calculate_flow_rates(
+            layers, flow, 0.0, nh4, no3, sm, delt=1.0
+        )
+
+        self.assertLessEqual(rout[0], nh4[0])
+        self.assertGreaterEqual(nh4[0] - rout[0], 0.0)
 
 
 if __name__ == "__main__":
