@@ -419,7 +419,7 @@ class SNOMIN(SimulationObject):
         NH4PRE2 = NH4PRE + (r.RNH4AM + r.RNH4MIN + r.RNH4DEPOS - r.RNH4NITR) * delt
         NO3PRE2 = NO3PRE + (r.RNO3AM + r.RNO3NITR + r.RNO3DEPOS  - r.RNO3DENITR) * delt
         r.RNH4IN, r.RNH4OUT, r.RNO3IN, r.RNO3OUT = \
-            sinm.calculate_flow_rates(self.soiln_profile, flow_m_per_d, p.KSORP, NH4PRE2, NO3PRE2, SM)
+            sinm.calculate_flow_rates(self.soiln_profile, flow_m_per_d, p.KSORP, NH4PRE2, NO3PRE2, SM, delt)
 
         # Calculate rates of change NH4-N and NO3-N
         r.RNH4 = r.RNH4AM + r.RNH4MIN + r.RNH4DEPOS - r.RNH4NITR - r.RNH4UP + r.RNH4IN - r.RNH4OUT
@@ -652,12 +652,44 @@ class SNOMIN(SimulationObject):
                 zmin = zmax
             return RNH4_am, RNO3_am
 
-        def calculate_flow_rates(self, soiln_profile, flow_m_per_d, KSORP, NH4, NO3, SM):
+        def calculate_flow_rates(self, soiln_profile, flow_m_per_d, KSORP, NH4, NO3, SM, delt=1.0):
+            """Calculate inorganic-N transport while preserving finite pools.
+
+            Raw advective fluxes are evaluated from start-of-transport
+            concentrations. For each donor layer, all simultaneous outward
+            fluxes are scaled by one factor when their integrated demand would
+            exceed the finite pool available in that layer. Internal inflow is
+            recomputed from the limited donor outflow, preserving profile mass.
+            """
             samm = self.SoilAmmoniumNModel()
             sni = self.SoilNNitrateModel()
             RNH4IN, RNH4OUT = samm.calculate_NH4_flow_rates(soiln_profile, flow_m_per_d, KSORP, NH4, SM)
             RNO3IN, RNO3OUT = sni.calculate_NO3_flow_rates(soiln_profile, flow_m_per_d, NO3, SM)
+
+            RNH4IN, RNH4OUT = self._limit_transport_to_finite_pool(
+                flow_m_per_d, NH4, RNH4OUT, delt
+            )
+            RNO3IN, RNO3OUT = self._limit_transport_to_finite_pool(
+                flow_m_per_d, NO3, RNO3OUT, delt
+            )
             return RNH4IN, RNH4OUT, RNO3IN, RNO3OUT
+
+        @staticmethod
+        def _limit_transport_to_finite_pool(flow_m_per_d, pool, raw_out, delt):
+            """Limit advective export per donor layer and preserve internal transfers."""
+            limited_out = np.array(raw_out, copy=True)
+            for il in range(len(pool)):
+                max_rate = max(0.0, pool[il]) / delt
+                if limited_out[il] > max_rate:
+                    limited_out[il] = max_rate
+
+            limited_in = np.zeros_like(pool)
+            for boundary in range(1, len(pool)):
+                if flow_m_per_d[boundary] >= 0.0:
+                    limited_in[boundary] += limited_out[boundary - 1]
+                else:
+                    limited_in[boundary - 1] += limited_out[boundary]
+            return limited_in, limited_out
 
         def calculate_deposition_rates(self,soiln_profile,infiltration_rate_m_per_d, NH4, NH4ConcR, NO3, NO3ConcR):
             samm = self.SoilAmmoniumNModel()
