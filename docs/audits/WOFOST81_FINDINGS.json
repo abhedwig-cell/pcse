@@ -6,12 +6,13 @@
   "findings": [
     {
       "id": "WOFOST81-SNOMIN-01",
-      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
+      "status": "COMPONENT_QUALIFIED_E2E_SMOKE_GREEN_IMPACT_PENDING",
       "confidence": "very_high",
       "component": "SNOMIN",
       "summary": "NH4 immobilisation limiter has reversed algebraic sign.",
       "repair_commit": "9dcb1c1e76db4ef694491f16cd42d543b031d390",
-      "qualification_run": "36981833631"
+      "qualification_run": "36981833631",
+      "e2e_smoke_run": "36982991452"
     },
     {
       "id": "WOFOST81-TIME-01",
@@ -43,21 +44,23 @@
     },
     {
       "id": "WOFOST81-SNOMIN-04",
-      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
+      "status": "COMPONENT_QUALIFIED_E2E_SMOKE_GREEN_IMPACT_PENDING",
       "confidence": "very_high",
       "component": "SNOMIN transport",
       "summary": "Unbounded advective export can exceed a finite NH4/NO3 pool; production transport now limits donor export and preserves internal transfer mass.",
       "repair_commit": "8f3f3d03bfde9be08c93fc8b315664151ab75f94",
-      "qualification_run": "36981833631"
+      "qualification_run": "36981833631",
+      "e2e_smoke_run": "36982991452"
     },
     {
       "id": "WOFOST81-NBAL-01",
-      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
+      "status": "COMPONENT_QUALIFIED_E2E_SMOKE_GREEN_IMPACT_PENDING",
       "confidence": "high",
       "component": "crop N bookkeeping",
       "summary": "Crop N balance is checked in calc_rates before same-day rates are integrated, so it verifies the prior integrated state and may not independently check the terminal crop-day update.",
       "repair_commit": "77e7b255fb63789d68200b0f457bb7b556fea4e7",
-      "qualification_run": "36982143473"
+      "qualification_run": "36982143473",
+      "e2e_smoke_run": "36982991452"
     },
     {
       "id": "WOFOST81-TEST-LEGACY-01",
@@ -69,7 +72,7 @@
     },
     {
       "id": "WOFOST81-REALLOC-01",
-      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
+      "status": "COMPONENT_QUALIFIED_E2E_SMOKE_GREEN_TARGETED_E2E_PENDING",
       "confidence": "very_high",
       "component": "biomass reallocation",
       "summary": "Requested leaf/stem reallocation is capped against a fixed start-of-reallocation quota, not same-day surviving donor biomass. Leaf integration removes nothing when REALLOC_LV >= post-senescence leaf biomass; stem integration can drive WST negative, while storage organs are still credited from requested REALLOC_SO. A transactional donor-limited repair is required.",
@@ -79,7 +82,8 @@
         "c3cb09c77fdce93a49a08a933fdf5bbe6e0e31b3"
       ],
       "test_commit": "21a31c2b98a870cb8b7ecfd4247a1205e457eb46",
-      "qualification_run": "36982745863"
+      "qualification_run": "36982745863",
+      "e2e_smoke_run": "36982991452"
     },
     {
       "id": "WOFOST81-NBAL-02",
@@ -88,5 +92,13 @@
       "component": "crop N bookkeeping",
       "summary": "Crop-N balance raises only at absolute checksum >= 1 kg N/ha; smaller systematic daily bookkeeping errors can pass. Qualification suite should use tighter process-level invariants even if production tolerance remains unchanged."
     }
-  ]
+  ],
+  "e2e_fixture": {
+    "status": "GREEN",
+    "run": "36982991452",
+    "crop_authority": "ajwdewit/WOFOST_crop_parameters@31b217f3958a7ff48ea875368385ebe2218f3dd4:wheat.yaml:Winter_wheat_102",
+    "soil": "synthetic qualification profile; not calibrated field authority",
+    "weather": "repository-owned WOFOST72 test weather reused only as deterministic forcing",
+    "scope": "full Wofost81_NWLP_MLWB_SNOMIN lifecycle smoke and non-negative mineral-N invariant"
+  }
 }
