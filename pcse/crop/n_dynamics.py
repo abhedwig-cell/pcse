@@ -174,7 +174,6 @@ class N_Crop_Dynamics(SimulationObject):
         rates.RNamountSO = k.RNuptakeSO + k.RNtranslocation        
         rates.RNloss = rates.RNdeathLV + rates.RNdeathST + rates.RNdeathRT
 
-        self._check_N_balance(day)
         
     @prepare_states
     def integrate(self, day, delt=1.0):
@@ -194,6 +193,10 @@ class N_Crop_Dynamics(SimulationObject):
         states.NuptakeTotal += k.RNuptake
         states.NfixTotal += k.RNfixation        
         states.NlossesTotal += rates.RNloss
+
+        # Check the state transition just integrated, including this day's
+        # uptake, fixation, translocation, senescence and organ-N updates.
+        self._check_N_balance(day)
 
     def _check_N_balance(self, day):
         s = self.states
