@@ -65,6 +65,20 @@
       "component": "legacy assimilation unit test",
       "summary": "Existing assimilation test constructs a driver without TMIN although current assimilation implementation requires drv.TMIN; audit CI isolates this stale harness rather than treating it as a model regression.",
       "evidence_run": "36982030150"
+    },
+    {
+      "id": "WOFOST81-REALLOC-01",
+      "status": "CONFIRMED_DEFECT_REPAIR_DESIGN_REQUIRED",
+      "confidence": "very_high",
+      "component": "biomass reallocation",
+      "summary": "Requested leaf/stem reallocation is capped against a fixed start-of-reallocation quota, not same-day surviving donor biomass. Leaf integration removes nothing when REALLOC_LV >= post-senescence leaf biomass; stem integration can drive WST negative, while storage organs are still credited from requested REALLOC_SO. A transactional donor-limited repair is required."
+    },
+    {
+      "id": "WOFOST81-NBAL-02",
+      "status": "STRUCTURAL_ASSUMPTION",
+      "confidence": "high",
+      "component": "crop N bookkeeping",
+      "summary": "Crop-N balance raises only at absolute checksum >= 1 kg N/ha; smaller systematic daily bookkeeping errors can pass. Qualification suite should use tighter process-level invariants even if production tolerance remains unchanged."
     }
   ]
 }
