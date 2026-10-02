@@ -732,11 +732,13 @@ class WOFOST_Leaf_Dynamics_N(SimulationObject):
         # Integration of physiological age
         tLVAGE = deque([age + r.FYSAGE for age in tLVAGE])
 
-        # Uniformly reduce leaf biomass in case of reallocation
+        # Uniformly reduce leaf biomass in case of reallocation. The
+        # top-level WOFOST81 transaction guarantees REALLOC_LV <= sumLV after
+        # same-day senescence; equality must remove the full remaining donor.
         if k.REALLOC_LV > 0:
             sumLV = sum(tLV)
-            if k.REALLOC_LV < sumLV:
-                ReductionFactorLV = (sumLV - k.REALLOC_LV)/sumLV
+            if sumLV > 0:
+                ReductionFactorLV = max(0.0, (sumLV - k.REALLOC_LV)/sumLV)
                 tLV = np.array(tLV) * ReductionFactorLV
 
         tLV = deque(tLV)
