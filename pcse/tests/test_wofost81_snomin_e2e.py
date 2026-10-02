@@ -160,5 +160,45 @@ class TestWOFOST81SNOMINE2E(unittest.TestCase):
             if row.get("NH4") is not None:
                 self.assertTrue(all(v >= -1e-12 for v in row["NH4"]))
 
+
+    def test_t12_baseline_vs_repair_has_causal_e2e_effect_when_limiter_activates(self):
+        original = SNOMIN._limit_nh4_mineralisation
+
+        def low_n_high_cn(soil):
+            soil["NH4I"] = [0.01, 0.01, 0.01, 0.01]
+            soil["NO3I"] = [0.1, 0.1, 0.1, 0.1]
+            for layer in soil["SoilProfileDescription"]["SoilLayers"]:
+                layer["CNRatioSOMI"] = 80.0
+                layer["FSOMI"] = max(layer["FSOMI"], 0.03)
+
+        try:
+            SNOMIN._limit_nh4_mineralisation = staticmethod(
+                lambda nh4_pre, nitrification_rate, delt: nh4_pre - nitrification_rate
+            )
+            baseline = _run(low_n_high_cn)
+            SNOMIN._limit_nh4_mineralisation = staticmethod(original)
+            repaired = _run(low_n_high_cn)
+        finally:
+            SNOMIN._limit_nh4_mineralisation = staticmethod(original)
+
+        def final_value(output, name):
+            values = [row[name] for row in output if row.get(name) is not None]
+            return values[-1]
+
+        b_tagp = final_value(baseline, "TAGP")
+        r_tagp = final_value(repaired, "TAGP")
+        b_uptake = final_value(baseline, "NuptakeTotal")
+        r_uptake = final_value(repaired, "NuptakeTotal")
+
+        print(
+            "T12 baseline_vs_repair "
+            f"TAGP={b_tagp:.6f}->{r_tagp:.6f} "
+            f"NuptakeTotal={b_uptake:.6f}->{r_uptake:.6f}"
+        )
+
+        self.assertTrue(
+            abs(b_tagp - r_tagp) > 1e-9 or abs(b_uptake - r_uptake) > 1e-9
+        )
+
 if __name__ == "__main__":
     unittest.main()
