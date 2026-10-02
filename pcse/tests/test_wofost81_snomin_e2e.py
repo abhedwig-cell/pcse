@@ -14,6 +14,7 @@ import yaml
 
 from pcse.base import ParameterProvider, WeatherDataProvider, WeatherDataContainer
 from pcse.models import Wofost81_NWLP_MLWB_SNOMIN
+from pcse.soil.snomin import SNOMIN
 
 
 class FixtureWeatherProvider(WeatherDataProvider):
@@ -107,15 +108,21 @@ def _agro():
     }]
 
 
+def _run(soil_modifier=None):
+    crop = _crop_parameters()
+    soil, site = _soil_and_site()
+    if soil_modifier is not None:
+        soil_modifier(soil)
+    params = ParameterProvider(cropdata=crop, soildata=soil, sitedata=site)
+    model = Wofost81_NWLP_MLWB_SNOMIN(params, _weather(), _agro())
+    model.run_till_terminate()
+    return model.get_output()
+
+
 class TestWOFOST81SNOMINE2E(unittest.TestCase):
 
     def test_full_lifecycle_preserves_nonnegative_n_and_produces_crop(self):
-        crop = _crop_parameters()
-        soil, site = _soil_and_site()
-        params = ParameterProvider(cropdata=crop, soildata=soil, sitedata=site)
-        model = Wofost81_NWLP_MLWB_SNOMIN(params, _weather(), _agro())
-        model.run_till_terminate()
-        output = model.get_output()
+        output = _run()
 
         self.assertGreater(len(output), 30)
         self.assertGreater(max(row["TAGP"] for row in output if row["TAGP"] is not None), 0.0)
@@ -126,6 +133,32 @@ class TestWOFOST81SNOMINE2E(unittest.TestCase):
             if row.get("NO3") is not None:
                 self.assertTrue(all(v >= -1e-12 for v in row["NO3"]))
 
+
+    def test_t12_low_n_high_cn_fixture_activates_immobilisation_limiter(self):
+        calls = {"n": 0}
+        original = SNOMIN._limit_nh4_mineralisation
+
+        def counted(nh4_pre, nitrification_rate, delt):
+            calls["n"] += 1
+            return original(nh4_pre, nitrification_rate, delt)
+
+        def low_n_high_cn(soil):
+            soil["NH4I"] = [0.01, 0.01, 0.01, 0.01]
+            soil["NO3I"] = [0.1, 0.1, 0.1, 0.1]
+            for layer in soil["SoilProfileDescription"]["SoilLayers"]:
+                layer["CNRatioSOMI"] = 80.0
+                layer["FSOMI"] = max(layer["FSOMI"], 0.03)
+
+        SNOMIN._limit_nh4_mineralisation = staticmethod(counted)
+        try:
+            output = _run(low_n_high_cn)
+        finally:
+            SNOMIN._limit_nh4_mineralisation = staticmethod(original)
+
+        self.assertGreater(calls["n"], 0)
+        for row in output:
+            if row.get("NH4") is not None:
+                self.assertTrue(all(v >= -1e-12 for v in row["NH4"]))
 
 if __name__ == "__main__":
     unittest.main()
