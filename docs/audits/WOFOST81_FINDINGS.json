@@ -91,6 +91,15 @@
       "confidence": "high",
       "component": "crop N bookkeeping",
       "summary": "Crop-N balance raises only at absolute checksum >= 1 kg N/ha; smaller systematic daily bookkeeping errors can pass. Qualification suite should use tighter process-level invariants even if production tolerance remains unchanged."
+    },
+    {
+      "id": "WOFOST-TEST-LEGACY-02",
+      "status": "TEST_HARNESS_REPAIRED_QUALIFICATION_PENDING",
+      "confidence": "very_high",
+      "component": "legacy WOFOST full-model regression harness",
+      "summary": "Direct unittest module discovery incorrectly instantiates WofostTestingTemplate and pandas 3 breaks label-based Series[0] access. Regression envelope now invokes the module's canonical suite() and uses iloc[0].",
+      "evidence_run": "36983073666",
+      "repair_commit": "e75838a4e97a8e763318feb9ac3ab4ad395ec149"
     }
   ],
   "e2e_fixture": {
