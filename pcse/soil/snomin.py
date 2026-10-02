@@ -404,7 +404,7 @@ class SNOMIN(SimulationObject):
         # denitrification is available for immobilization. RNORGDIS is updated as well to close the N balance again.
         for il, layer in enumerate(self.soiln_profile):
             if NH4PRE[il] + (r.RNH4MIN[il] - r.RNH4NITR[il]) * delt < 0:
-                r.RNH4MIN[il] = NH4PRE[il] - r.RNH4NITR[il]
+                r.RNH4MIN[il] = r.RNH4NITR[il] - NH4PRE[il] / delt
                 RNORDIST = r.RNORGDIS[:,il].sum()
                 for iam in range(0,len(r.RNORGDIS[:,il])):
                     r.RNORGDIS[iam,il] = (r.RNH4MIN[il] / RNORDIST) * r.RNORGDIS[iam,il]
