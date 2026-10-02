@@ -52,10 +52,19 @@
     },
     {
       "id": "WOFOST81-NBAL-01",
-      "status": "OPEN_HIGH_PRIORITY",
+      "status": "REPAIR_IMPLEMENTED_UNQUALIFIED",
       "confidence": "high",
       "component": "crop N bookkeeping",
-      "summary": "Crop N balance is checked in calc_rates before same-day rates are integrated, so it verifies the prior integrated state and may not independently check the terminal crop-day update."
+      "summary": "Crop N balance is checked in calc_rates before same-day rates are integrated, so it verifies the prior integrated state and may not independently check the terminal crop-day update.",
+      "repair_commit": "77e7b255fb63789d68200b0f457bb7b556fea4e7"
+    },
+    {
+      "id": "WOFOST81-TEST-LEGACY-01",
+      "status": "CONFIRMED_TEST_HARNESS_DEFECT",
+      "confidence": "very_high",
+      "component": "legacy assimilation unit test",
+      "summary": "Existing assimilation test constructs a driver without TMIN although current assimilation implementation requires drv.TMIN; audit CI isolates this stale harness rather than treating it as a model regression.",
+      "evidence_run": "36982030150"
     }
   ]
 }
