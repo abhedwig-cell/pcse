@@ -24,17 +24,17 @@
     },
     {
       "id": "WOFOST81-TIME-01",
-      "status": "STRUCTURAL_ASSUMPTION",
-      "confidence": "high",
+      "status": "CONFIRMED_SYSTEM_CONTRACT",
+      "confidence": "very_high",
       "component": "time integration",
-      "summary": "Current implementation is qualified as a discrete daily model, not a generic delt integrator."
+      "summary": "WOFOST81 is a discrete one-day transition system: phenology/vernalisation, root, stem, storage-organ and leaf integration contain daily state increments without delt scaling, while some top-level cumulatives do scale by delt. Non-unit delt is therefore internally inconsistent and unsupported."
     },
     {
       "id": "WOFOST81-PART-01",
-      "status": "THEORY_CODE_DISCREPANCY",
+      "status": "CONFIRMED_DOCUMENTATION_CODE_DISCREPANCY",
       "confidence": "high",
       "component": "partitioning",
-      "summary": "DVS_Partitioning_N documentation describes N stress while implementation modifier uses RFTRA."
+      "summary": "DVS_Partitioning_N documentation says N stress affects partitioning, but implementation modifies root allocation with RFTRA (water/oxygen stress); no N-stress variable is used in partitioning."
     },
     {
       "id": "WOFOST81-ROOT-01",
