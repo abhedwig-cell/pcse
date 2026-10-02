@@ -68,14 +68,14 @@ def _soil_and_site():
         "SurfaceConductivity": 20.0,
         "SoilLayers": [
             layer(30.0, 0.025), layer(30.0, 0.015),
-            layer(30.0, 0.008), layer(30.0, 0.004),
+            layer(30.0, 0.008), layer(35.0, 0.004),
         ],
         "GroundWater": None,
     }
 
     soil = {
         "SoilProfileDescription": profile,
-        "RDMSOL": 120.0,
+        "RDMSOL": 125.0,
         "IFUNRN": 0, "NOTINF": 0.0, "SSI": 0.0, "SSMAX": 2.0,
         "SMLIM": 0.31, "WAV": 25.0,
         "A0SOM": 20.0, "CNRatioBio": 8.0, "FASDIS": 0.4,
