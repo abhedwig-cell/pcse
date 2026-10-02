@@ -68,10 +68,16 @@
     },
     {
       "id": "WOFOST81-REALLOC-01",
-      "status": "CONFIRMED_DEFECT_REPAIR_DESIGN_REQUIRED",
+      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_RUNNING",
       "confidence": "very_high",
       "component": "biomass reallocation",
-      "summary": "Requested leaf/stem reallocation is capped against a fixed start-of-reallocation quota, not same-day surviving donor biomass. Leaf integration removes nothing when REALLOC_LV >= post-senescence leaf biomass; stem integration can drive WST negative, while storage organs are still credited from requested REALLOC_SO. A transactional donor-limited repair is required."
+      "summary": "Requested leaf/stem reallocation is capped against a fixed start-of-reallocation quota, not same-day surviving donor biomass. Leaf integration removes nothing when REALLOC_LV >= post-senescence leaf biomass; stem integration can drive WST negative, while storage organs are still credited from requested REALLOC_SO. A transactional donor-limited repair is required.",
+      "repair_commits": [
+        "42dcea4a43ec4958689da8e754946984143af656",
+        "68d26d1210288f589b5d3a04df801ce6f9befeab",
+        "c3cb09c77fdce93a49a08a933fdf5bbe6e0e31b3"
+      ],
+      "test_commit": "21a31c2b98a870cb8b7ecfd4247a1205e457eb46"
     },
     {
       "id": "WOFOST81-NBAL-02",
