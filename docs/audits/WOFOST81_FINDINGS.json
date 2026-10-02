@@ -94,12 +94,13 @@
     },
     {
       "id": "WOFOST-TEST-LEGACY-02",
-      "status": "TEST_HARNESS_REPAIRED_QUALIFICATION_PENDING",
+      "status": "TEST_HARNESS_REPAIRED_QUALIFIED",
       "confidence": "very_high",
       "component": "legacy WOFOST full-model regression harness",
       "summary": "Direct unittest module discovery incorrectly instantiates WofostTestingTemplate and pandas 3 breaks label-based Series[0] access. Regression envelope now invokes the module's canonical suite() and uses iloc[0].",
       "evidence_run": "36983073666",
-      "repair_commit": "e75838a4e97a8e763318feb9ac3ab4ad395ec149"
+      "repair_commit": "e75838a4e97a8e763318feb9ac3ab4ad395ec149",
+      "qualification_run": "36983146386"
     }
   ],
   "e2e_fixture": {
@@ -109,5 +110,10 @@
     "soil": "synthetic qualification profile; not calibrated field authority",
     "weather": "repository-owned WOFOST72 test weather reused only as deterministic forcing",
     "scope": "full Wofost81_NWLP_MLWB_SNOMIN lifecycle smoke and non-negative mineral-N invariant"
+  },
+  "regression_envelope": {
+    "status": "GREEN",
+    "run": "36983146386",
+    "scope": "canonical pcse.tests.test_wofost72 suite plus WOFOST81 scientific qualification and E2E smoke"
   }
 }
