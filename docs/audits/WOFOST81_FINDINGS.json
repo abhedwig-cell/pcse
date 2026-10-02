@@ -6,13 +6,21 @@
   "findings": [
     {
       "id": "WOFOST81-SNOMIN-01",
-      "status": "COMPONENT_QUALIFIED_E2E_SMOKE_GREEN_IMPACT_PENDING",
+      "status": "E2E_CAUSAL_EFFECT_CONFIRMED_REALISM_FRONTIER_PENDING",
       "confidence": "very_high",
       "component": "SNOMIN",
       "summary": "NH4 immobilisation limiter has reversed algebraic sign.",
       "repair_commit": "9dcb1c1e76db4ef694491f16cd42d543b031d390",
       "qualification_run": "36981833631",
-      "e2e_smoke_run": "36982991452"
+      "e2e_smoke_run": "36982991452",
+      "t12_run": "36983335139",
+      "t12_synthetic_effect": {
+        "TAGP_baseline": 3970.471846,
+        "TAGP_repaired": 1125.003215,
+        "NuptakeTotal_baseline": 22.351471,
+        "NuptakeTotal_repaired": 0.363096,
+        "interpretation": "Extreme low-N/high-C:N synthetic qualification case; demonstrates material causal amplification but is not a field-effect estimate."
+      }
     },
     {
       "id": "WOFOST81-TIME-01",
@@ -113,7 +121,7 @@
   },
   "regression_envelope": {
     "status": "GREEN",
-    "run": "36983146386",
-    "scope": "canonical pcse.tests.test_wofost72 suite plus WOFOST81 scientific qualification and E2E smoke"
+    "run": "36983335139",
+    "scope": "19 WOFOST81 scientific/component/E2E tests plus 12 canonical legacy WOFOST full-model regressions"
   }
 }
