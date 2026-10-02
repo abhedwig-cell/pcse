@@ -52,11 +52,12 @@
     },
     {
       "id": "WOFOST81-NBAL-01",
-      "status": "REPAIR_IMPLEMENTED_UNQUALIFIED",
+      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
       "confidence": "high",
       "component": "crop N bookkeeping",
       "summary": "Crop N balance is checked in calc_rates before same-day rates are integrated, so it verifies the prior integrated state and may not independently check the terminal crop-day update.",
-      "repair_commit": "77e7b255fb63789d68200b0f457bb7b556fea4e7"
+      "repair_commit": "77e7b255fb63789d68200b0f457bb7b556fea4e7",
+      "qualification_run": "36982143473"
     },
     {
       "id": "WOFOST81-TEST-LEGACY-01",
@@ -68,7 +69,7 @@
     },
     {
       "id": "WOFOST81-REALLOC-01",
-      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_RUNNING",
+      "status": "COMPONENT_QUALIFIED_E2E_PENDING",
       "confidence": "very_high",
       "component": "biomass reallocation",
       "summary": "Requested leaf/stem reallocation is capped against a fixed start-of-reallocation quota, not same-day surviving donor biomass. Leaf integration removes nothing when REALLOC_LV >= post-senescence leaf biomass; stem integration can drive WST negative, while storage organs are still credited from requested REALLOC_SO. A transactional donor-limited repair is required.",
@@ -77,7 +78,8 @@
         "68d26d1210288f589b5d3a04df801ce6f9befeab",
         "c3cb09c77fdce93a49a08a933fdf5bbe6e0e31b3"
       ],
-      "test_commit": "21a31c2b98a870cb8b7ecfd4247a1205e457eb46"
+      "test_commit": "21a31c2b98a870cb8b7ecfd4247a1205e457eb46",
+      "qualification_run": "36982745863"
     },
     {
       "id": "WOFOST81-NBAL-02",
