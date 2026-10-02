@@ -257,42 +257,58 @@ class Wofost81(SimulationObject):
                                    CVF, pf)
 
         # TODO: move reallocation to separate module that can be shared between 7.3 and 8.1
-        # Reallocation from stems/leaves
-        if k.DVS < p.REALLOC_DVS:
-            r.REALLOC_LV = 0.0
-            r.REALLOC_ST = 0.0
-            r.REALLOC_SO = 0.0
-        else:
-            if self._WST_REALLOC is None:  # Start of reallocation, compute max reallocatable biomass
+        # First determine the requested reallocation from the fixed quota.
+        # The request is made transactional below, after same-day donor death
+        # rates are known, so storage organs can only receive biomass that was
+        # actually removed from living donor organs.
+        requested_realloc_lv = 0.0
+        requested_realloc_st = 0.0
+        if k.DVS >= p.REALLOC_DVS:
+            if self._WST_REALLOC is None:
                 self._WST_REALLOC = k.WST * p.REALLOC_STEM_FRACTION
                 self._WLV_REALLOC = k.WLV * p.REALLOC_LEAF_FRACTION
-            # Reallocation rate in terms of loss of stem/leaf dry matter
             if self.states.LV_REALLOCATED < self._WLV_REALLOC:
-                r.REALLOC_LV = min(self._WLV_REALLOC * p.REALLOC_LEAF_RATE, self._WLV_REALLOC - self.states.LV_REALLOCATED)
-            else:
-                r.REALLOC_LV = 0.
-
+                requested_realloc_lv = min(
+                    self._WLV_REALLOC * p.REALLOC_LEAF_RATE,
+                    self._WLV_REALLOC - self.states.LV_REALLOCATED
+                )
             if self.states.ST_REALLOCATED < self._WST_REALLOC:
-                r.REALLOC_ST = min(self._WST_REALLOC * p.REALLOC_STEM_RATE, self._WST_REALLOC - self.states.ST_REALLOCATED)
-            else:
-                r.REALLOC_ST = 0.
-            # Reallocation rate in terms of increase in storage organs taking
-            # into account CVL/CVO ratio, CVS/CVO ratio and losses due to respiration
-            r.REALLOC_SO = (r.REALLOC_LV + r.REALLOC_ST) * p.REALLOC_EFFICIENCY
+                requested_realloc_st = min(
+                    self._WST_REALLOC * p.REALLOC_STEM_RATE,
+                    self._WST_REALLOC - self.states.ST_REALLOCATED
+                )
 
         # Calculate N stress indices
         self.n_stress(day, drv)
 
-        # distribution over plant organ
-
-        # Below-ground dry matter increase and root dynamics
-        self.ro_dynamics.calc_rates(day, drv)
-        # Aboveground dry matter increase and distribution over stems,
-        # leaves, organs
+        # Aboveground dry matter increase is needed by leaf/stem rate
+        # calculations before the reallocation transaction is committed.
         r.ADMI = (1. - pf.FR) * r.DMI
+
+        # Below-ground dry matter increase and root dynamics.
+        self.ro_dynamics.calc_rates(day, drv)
+
+        # Obtain same-day donor growth/death rates with zero committed
+        # reallocation. Leaf calc_rates is independent of REALLOC_LV; stem
+        # calc_rates is repeated after the committed transfer is known.
+        r.REALLOC_LV = 0.0
+        r.REALLOC_ST = 0.0
+        r.REALLOC_SO = 0.0
+        self.st_dynamics.calc_rates(day, drv)
+        self.lv_dynamics.calc_rates(day, drv)
+
+        # Reallocation is donor-limited after same-day senescence. Newly grown
+        # biomass is not made immediately available for reallocation.
+        leaf_available = max(0.0, k.WLV - self.lv_dynamics.rates.DRLV)
+        stem_available = max(0.0, k.WST - self.st_dynamics.rates.DRST)
+        r.REALLOC_LV = min(requested_realloc_lv, leaf_available)
+        r.REALLOC_ST = min(requested_realloc_st, stem_available)
+        r.REALLOC_SO = (r.REALLOC_LV + r.REALLOC_ST) * p.REALLOC_EFFICIENCY
+
+        # Recompute stem net growth with the committed transfer and calculate
+        # the storage-organ sink from exactly that committed transfer.
         self.st_dynamics.calc_rates(day, drv)
         self.so_dynamics.calc_rates(day, drv)
-        self.lv_dynamics.calc_rates(day, drv)
 
         self.n_crop_dynamics.calc_rates(day, drv)
 
