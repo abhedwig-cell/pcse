@@ -269,6 +269,7 @@ class WaterBalanceLayered(SimulationObject):
 
     # Indicates that a new crop has started
     crop_start = Bool(False)
+    rooted_layer_needs_reset = Bool(False)
 
     class Parameters(ParamTemplate):
         IFUNRN = Int(None)
