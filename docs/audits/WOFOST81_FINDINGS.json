@@ -188,6 +188,29 @@
       "confidence": "medium",
       "component": "crop rotation/deletion",
       "summary": "Engine deletes crop state/rate registrations recursively and forces garbage collection because signal subscriptions otherwise retain objects. New crop start is rejected while a crop object remains. No additional rotation ownership defect was established in this tranche."
+    },
+    {
+      "id": "WOFOST81-LOGIC-AMEND02",
+      "status": "CONFIRMED_DEFECT_REPAIRED",
+      "confidence": "very_high",
+      "component": "SNOMIN management events",
+      "summary": "Multiple apply_n_snomin events on the same rate day append organic amendment pools but baseline mineral NH4/NO3 placeholders are assigned, so each later event overwrites mineral N from earlier events. Repair accumulates mineral-N contributions.",
+      "repair_commit": "5b4a7d035069e8351c6002d9ca5ebd62309ab2a0"
+    },
+    {
+      "id": "WOFOST81-LOGIC-IRR01",
+      "status": "CONFIRMED_DEFECT_REPAIRED",
+      "confidence": "very_high",
+      "component": "MLWB irrigation events",
+      "summary": "WaterBalanceLayered._on_IRRIGATE assigns _RIRR, so multiple irrigation signals before calc_rates silently retain only the last event. Repair makes independent same-day irrigation events additive.",
+      "repair_commit": "04347aaf790b7b8755eb28b0c2afe3f594931a42"
+    },
+    {
+      "id": "WOFOST81-LOGIC-RAINIRR01",
+      "status": "REVIEWED_COMPOSITION",
+      "confidence": "high",
+      "component": "MLWB rainfall+irrigation",
+      "summary": "Rainfall and irrigation enter through distinct current-day inputs (drv.RAIN and RIRR) and are combined in infiltration/surface-water logic rather than overwriting one another. No duplicate-source defect established."
     }
   ],
   "e2e_fixture": {
