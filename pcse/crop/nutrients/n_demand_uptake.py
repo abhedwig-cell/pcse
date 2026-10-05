@@ -149,6 +149,12 @@ class N_Demand_Uptake(SimulationObject):
         """
 
         self.params = self.Parameters(parvalues)
+        for name in ("NFIX_FR", "NMAXRT_FR", "NMAXST_FR", "NRESIDLV", "NRESIDST", "NRESIDRT"):
+            value = getattr(self.params, name)
+            if not 0. <= value <= 1.:
+                raise exc.PCSEError("%s must be within [0, 1]." % name)
+        if self.params.NMAXSO < 0.:
+            raise exc.PCSEError("NMAXSO must be non-negative.")
         self.kiosk = kiosk
 
         self.rates = self.RateVariables(kiosk,
