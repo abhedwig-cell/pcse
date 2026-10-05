@@ -7,6 +7,7 @@ from pcse import signals
 from pcse.agromanager import CropCalendar, StateEventsDispatcher
 from pcse.base import VariableKiosk
 from pcse.soil.multilayer_waterbalance import WaterBalanceLayered
+from pcse.crop.nutrients.n_demand_uptake import N_Demand_Uptake
 from pcse.base.dispatcher import dispatcher
 
 
@@ -105,6 +106,27 @@ class TestSameDayManagementAccumulation(unittest.TestCase):
         wb._on_IRRIGATE(2.0, 0.5)
         wb._on_IRRIGATE(3.0, 0.8)
         self.assertAlmostEqual(wb._RIRR, 3.4)
+
+
+
+class TestNitrogenDonorTransactions(unittest.TestCase):
+
+    def test_senescence_reserves_n_before_translocation(self):
+        # 10 kg N in 100 kg living biomass, 80 kg dies today, residual
+        # concentration of survivors is 0.02 kg N/kg DM.
+        available = N_Demand_Uptake._available_translocatable_after_death(
+            n_amount=10.0, living_biomass=100.0,
+            death_biomass=80.0, residual_fraction=0.02
+        )
+        # Death owns 8 kg N; surviving 20 kg DM must retain 0.4 kg N.
+        self.assertAlmostEqual(available, 1.6)
+
+    def test_complete_senescence_leaves_no_translocatable_n(self):
+        available = N_Demand_Uptake._available_translocatable_after_death(
+            n_amount=10.0, living_biomass=100.0,
+            death_biomass=100.0, residual_fraction=0.01
+        )
+        self.assertEqual(available, 0.0)
 
 
 if __name__ == "__main__":
