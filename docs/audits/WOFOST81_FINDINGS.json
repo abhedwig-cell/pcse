@@ -214,10 +214,15 @@
     },
     {
       "id": "WOFOST81-LOGIC-NTRANS01",
-      "status": "CONFIRMED_DOUBLE_CLAIM_RISK_REPAIR_DESIGN_REQUIRED",
+      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING",
       "confidence": "very_high",
       "component": "crop N demand/translocation",
-      "summary": "N translocatable donor pools are computed from pre-transition Namount and living biomass, while RNdeath for the same day independently claims N from that same pre-transition donor pool. Under sufficiently strong simultaneous senescence and translocation, RNdeath + RNtranslocation can exceed donor N available above zero, potentially driving organ N negative even though internal translocation itself algebraically cancels in the whole-crop balance. Repair must transactionally limit donor translocation after same-day N death/residual ownership."
+      "summary": "N translocatable donor pools are computed from pre-transition Namount and living biomass, while RNdeath for the same day independently claims N from that same pre-transition donor pool. Under sufficiently strong simultaneous senescence and translocation, RNdeath + RNtranslocation can exceed donor N available above zero, potentially driving organ N negative even though internal translocation itself algebraically cancels in the whole-crop balance. Repair must transactionally limit donor translocation after same-day N death/residual ownership.",
+      "repair_commits": [
+        "22d2164b7c2412efcff7cf444910824c963e6889",
+        "e8b3e8e6cb55d745cbba029b0d0a686aa067fc9d"
+      ],
+      "test_commit": "f45fde736934ab9c98c1a4412e7d47e5157bf789"
     },
     {
       "id": "WOFOST81-LOGIC-ROOT01",
