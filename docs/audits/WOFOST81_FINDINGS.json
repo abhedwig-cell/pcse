@@ -373,6 +373,34 @@
       "confidence": "high",
       "component": "root/soil profile",
       "summary": "Maximum rooting depth is strongly validated against layer boundaries, and crop RDmax is min(RDMCR,RDMSOL). However basic positivity/order relationships among RDI, RDMCR and RDMSOL rely largely on input quality; rdmax=max(RDI,min(...)) can make RDI override nominal maxima if inconsistent parameters are supplied."
+    },
+    {
+      "id": "WOFOST81-XVER-PART01",
+      "status": "CONFIRMED_WOFOST81_SPECIFIC_DIVERGENCE_OWNER_REVIEW",
+      "confidence": "very_high",
+      "component": "partitioning 7.2/7.3/8.1",
+      "summary": "WOFOST81 selects DVS_Partitioning_N, whose implementation modifies root allocation with RFTRA and caps FR at 0.6. WOFOST72/73 use ordinary DVS partitioning in their standard crop classes. The N-specific class documentation instead describes N-stress/NPART effects and lists NNI, but NPART is commented out and NNI unused. This is not an accidental small code drift; it is an undocumented/contradictory 8.1 model divergence requiring maintainer decision."
+    },
+    {
+      "id": "WOFOST81-XVER-TIME01",
+      "status": "CONFIRMED_CROSS_VERSION_DIVERGENCE",
+      "confidence": "high",
+      "component": "top-level cumulative integration",
+      "summary": "WOFOST72/73 top-level GASST/MREST/CTRAT/CEVST accumulate daily rates without delt; WOFOST81 multiplies these top-level cumulatives by delt while many underlying organ/phenology integrations remain unscaled. This reinforces that WOFOST81's partial delt support is internally inconsistent rather than a complete variable-step modernization."
+    },
+    {
+      "id": "WOFOST81-XVER-CORE01",
+      "status": "REVIEWED_CONSERVED_CORE",
+      "confidence": "very_high",
+      "component": "assimilation-respiration-DMI core",
+      "summary": "Across WOFOST72/73/81 the main PGASS→RFTRA→GASS→MRES→ASRC→CVF→DMI sequence and carbon-balance formulation are materially conserved. No unexplained 8.1 divergence established in this core."
+    },
+    {
+      "id": "WOFOST81-XVER-LIFE01",
+      "status": "REVIEWED_CONSERVED_LIFECYCLE",
+      "confidence": "high",
+      "component": "crop lifecycle",
+      "summary": "The emerging-stage early return, phenology-before-organ integration, TAGP recomputation and crop-finish finalize pattern are inherited across versions. First/last-day temporal semantics are therefore broader PCSE/WOFOST architecture, not uniquely introduced by 8.1."
     }
   ],
   "e2e_fixture": {
