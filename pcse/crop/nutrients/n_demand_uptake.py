@@ -7,6 +7,7 @@ from ...base import StatesTemplate, ParamTemplate, SimulationObject, RatesTempla
 from ...decorators import prepare_rates, prepare_states
 from ...traitlets import HasTraits, Float, Int, Instance
 from ...util import AfgenTrait
+from ... import exceptions as exc
 
 MaxNutrientConcentrations = namedtuple("MaxNutrientConcentrations",
                                        ["NMAXLV","NMAXST", "NMAXRT", "NMAXSO"])
