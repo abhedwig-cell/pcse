@@ -214,10 +214,10 @@
     },
     {
       "id": "WOFOST81-LOGIC-NTRANS01",
-      "status": "OPEN_HIGH_PRIORITY_CAUSALITY",
-      "confidence": "high",
+      "status": "CONFIRMED_DEFECT_REPAIR_REQUIRED",
+      "confidence": "very_high",
       "component": "crop N demand/translocation",
-      "summary": "Organ uptake allocation adds donor translocation rates to leaf/root/stem uptake weights while subtracting translocation from storage-organ demand. This may intentionally replenish donor organs, but denominator remains total Ndemand without corresponding translocation terms. Requires algebraic closure test under strong simultaneous translocation, uptake and fixation before classification."
+      "summary": "Organ uptake allocation is algebraically non-conservative whenever translocation > 0: donor weights add RNtranslocationLV/ST/RT while storage weight subtracts RNtranslocation, so the adjusted weights still sum to Ndemand, but each organ share is divided by Ndemand and capped against its adjusted weight. In the uncapped proportional case shares do sum to external supply; however donor death/translocation and uptake are based on pre-transition organ states and require a finite-donor transaction. Further executable repair is required before changing formulation."
     }
   ],
   "e2e_fixture": {
