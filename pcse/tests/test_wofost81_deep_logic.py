@@ -129,5 +129,15 @@ class TestNitrogenDonorTransactions(unittest.TestCase):
         self.assertEqual(available, 0.0)
 
 
+
+class TestFallowRootZoneOwnership(unittest.TestCase):
+
+    def test_crop_finish_marks_mlwb_root_geometry_for_reset(self):
+        wb = WaterBalanceLayered.__new__(WaterBalanceLayered)
+        wb.rooted_layer_needs_reset = False
+        wb._on_CROP_FINISH()
+        self.assertTrue(wb.rooted_layer_needs_reset)
+
+
 if __name__ == "__main__":
     unittest.main()
