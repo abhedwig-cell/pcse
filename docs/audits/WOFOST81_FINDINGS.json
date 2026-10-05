@@ -329,31 +329,43 @@
     },
     {
       "id": "WOFOST81-CONFIG-REALLOC01",
-      "status": "MISSING_PARAMETER_VALIDATION",
+      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
       "confidence": "very_high",
       "component": "WOFOST81 reallocation parameters",
-      "summary": "REALLOC_LEAF/STEM_FRACTION, REALLOC_LEAF/STEM_RATE and REALLOC_EFFICIENCY are unconstrained Floats. Negative fractions/rates, fractions >1 or efficiencies outside [0,1] are accepted and can invert transfers or create more storage biomass than committed donor transfer. Hard physical bounds should be validated."
+      "summary": "REALLOC_LEAF/STEM_FRACTION, REALLOC_LEAF/STEM_RATE and REALLOC_EFFICIENCY are unconstrained Floats. Negative fractions/rates, fractions >1 or efficiencies outside [0,1] are accepted and can invert transfers or create more storage biomass than committed donor transfer. Hard physical bounds should be validated.",
+      "repair_commits": [
+        "5c88ff4f6f1eb339c32a122846cfc906af663103"
+      ]
     },
     {
       "id": "WOFOST81-CONFIG-N01",
-      "status": "MISSING_PARAMETER_VALIDATION",
+      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
       "confidence": "very_high",
       "component": "crop N parameters",
-      "summary": "NFIX_FR, NMAXRT_FR, NMAXST_FR and residual N fractions are unconstrained Floats. NFIX_FR outside [0,1] can make fixation exceed demand or become negative; negative residual/max fractions invalidate donor and stress logic. Hard fraction bounds are not enforced."
+      "summary": "NFIX_FR, NMAXRT_FR, NMAXST_FR and residual N fractions are unconstrained Floats. NFIX_FR outside [0,1] can make fixation exceed demand or become negative; negative residual/max fractions invalidate donor and stress logic. Hard fraction bounds are not enforced.",
+      "repair_commits": [
+        "fa8502715d4cec5811e60548acc1a065b9d950d8"
+      ]
     },
     {
       "id": "WOFOST81-CONFIG-ET01",
-      "status": "MISSING_SWITCH_VALIDATION",
+      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
       "confidence": "high",
       "component": "evapotranspiration",
-      "summary": "IAIRDU and IOX are documented binary switches but represented as unconstrained Float. Values other than exact 0/1 silently select branches by equality tests, creating undocumented semantics."
+      "summary": "IAIRDU and IOX are documented binary switches but represented as unconstrained Float. Values other than exact 0/1 silently select branches by equality tests, creating undocumented semantics.",
+      "repair_commits": [
+        "6ba2120f803c61ecda00ce4cc3ded7125089adc1"
+      ]
     },
     {
       "id": "WOFOST81-CONFIG-SN01",
-      "status": "MISSING_EVENT_VALIDATION",
+      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
       "confidence": "very_high",
       "component": "SNOMIN amendment event",
-      "summary": "apply_n_snomin accepts amount, application_depth, cnratio and composition fractions without explicit domain checks. application_depth <=0 can reach division-by-zero/invalid allocation after only a '< top layer' coercion; negative amount/C:N or composition fractions outside physical ranges can create invalid material/N states."
+      "summary": "apply_n_snomin accepts amount, application_depth, cnratio and composition fractions without explicit domain checks. application_depth <=0 can reach division-by-zero/invalid allocation after only a '< top layer' coercion; negative amount/C:N or composition fractions outside physical ranges can create invalid material/N states.",
+      "repair_commits": [
+        "4d48a9ff1fba1f79d32d4f2a3fa69a301e20d7a4"
+      ]
     },
     {
       "id": "WOFOST81-CONFIG-ROOT01",
