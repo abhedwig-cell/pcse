@@ -6,6 +6,7 @@ import unittest
 from pcse import signals
 from pcse.agromanager import CropCalendar, StateEventsDispatcher
 from pcse.base import VariableKiosk
+from pcse.soil.multilayer_waterbalance import WaterBalanceLayered
 from pcse.base.dispatcher import dispatcher
 
 
@@ -94,6 +95,17 @@ class TestStateEventLogic(unittest.TestCase):
             dispatcher.disconnect(on_event, signal=signals.apply_n)
 
         self.assertEqual(fired, [3.0, 6.0, 11.0])
+
+
+class TestSameDayManagementAccumulation(unittest.TestCase):
+
+    def test_irrigation_handlers_accumulate_independent_same_day_events(self):
+        wb = WaterBalanceLayered.__new__(WaterBalanceLayered)
+        wb._RIRR = 0.0
+        wb._on_IRRIGATE(2.0, 0.5)
+        wb._on_IRRIGATE(3.0, 0.8)
+        self.assertAlmostEqual(wb._RIRR, 3.4)
+
 
 if __name__ == "__main__":
     unittest.main()
