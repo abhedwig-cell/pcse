@@ -1,0 +1,36 @@
+name: WOFOST81 Deep Logic Qualification
+
+on:
+  push:
+    branches:
+      - audit/wofost81-deep-logic
+  workflow_dispatch:
+
+jobs:
+  deep-logic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install PCSE
+        run: python -m pip install -e .
+      - name: Run scientific and deep-logic qualification
+        run: >
+          python -m unittest -v
+          pcse.tests.test_snomin_scientific
+          pcse.tests.test_wofost81_reallocation_scientific
+          pcse.tests.test_wofost81_snomin_e2e
+          pcse.tests.test_wofost81_deep_logic
+          pcse.tests.test_partitioning
+          pcse.tests.test_respiration
+      - name: Run legacy WOFOST full-model regression envelope
+        run: |
+          python - <<'PY'
+          import unittest
+          from pcse.tests.test_wofost72 import suite
+          result = unittest.TextTestRunner(verbosity=2).run(suite())
+          raise SystemExit(0 if result.wasSuccessful() else 1)
+          PY
