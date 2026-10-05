@@ -175,7 +175,7 @@ class CropCalendar(HasTraits, DispatcherObject):
                     finish_type = "harvest"
 
             # Check for forced stop because maximum duration is reached
-            if self.in_crop_cycle and self.duration == self.max_duration:
+            if self.in_crop_cycle and self.duration == self.max_duration and finish_type is None:
                 finish_type = "max_duration"
 
         # If finish condition is reached send a signal to finish the crop
@@ -486,6 +486,10 @@ class StateEventsDispatcher(HasTraits, DispatcherObject):
 
         # is None: e.g. called the first time and zero_condition_sign is not yet calculated
         if zero_condition_sign is None:
+            # If the event is first observed exactly at its threshold, the
+            # threshold has already been reached and must not be silently lost.
+            if sign == 0:
+                self._send_signal(signal=self.event_signal, **keywords)
             return sign
 
         if zero_condition_sign == 1 and sign in [-1, 0]:
@@ -500,6 +504,10 @@ class StateEventsDispatcher(HasTraits, DispatcherObject):
 
         # is None: e.g. called the first time and zero_condition_sign is not yet calculated
         if zero_condition_sign is None:
+            # If the event is first observed exactly at its threshold, the
+            # threshold has already been reached and must not be silently lost.
+            if sign == 0:
+                self._send_signal(signal=self.event_signal, **kwargs)
             return sign
 
         if zero_condition_sign == -1 and sign in [0, 1]:
@@ -514,6 +522,10 @@ class StateEventsDispatcher(HasTraits, DispatcherObject):
 
         # is None: e.g. called the first time and zero_condition_sign is not yet calculated
         if zero_condition_sign is None:
+            # If the event is first observed exactly at its threshold, the
+            # threshold has already been reached and must not be silently lost.
+            if sign == 0:
+                self._send_signal(signal=self.event_signal, **keywords)
             return sign
 
         if (zero_condition_sign == 1 and sign in [-1, 0]) or \
