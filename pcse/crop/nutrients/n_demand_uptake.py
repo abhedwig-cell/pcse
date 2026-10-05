@@ -158,6 +158,14 @@ class N_Demand_Uptake(SimulationObject):
         self.states = self.StateVariables(kiosk, NtranslocatableLV=0., NtranslocatableST=0., NtranslocatableRT=0., 
                                           Ntranslocatable=0., publish=["Ntranslocatable"])
 
+    @staticmethod
+    def _available_translocatable_after_death(n_amount, living_biomass, death_biomass, residual_fraction):
+        if living_biomass <= 0.:
+            return 0.
+        n_death = (n_amount / living_biomass) * death_biomass
+        surviving_biomass = max(0., living_biomass - death_biomass)
+        return max(0., n_amount - n_death - surviving_biomass * residual_fraction)
+
     @prepare_rates
     def calc_rates(self, day, drv):
         r = self.rates
@@ -213,9 +221,9 @@ class N_Demand_Uptake(SimulationObject):
             # pool on this rate day. Reserve the N already committed to death
             # before committing internal translocation, while preserving the
             # residual-N floor of the surviving donor biomass.
-            available_lv = max(0., k.NamountLV - (k.NamountLV / k.WLV) * k.DRLV - max(0., k.WLV - k.DRLV) * p.NRESIDLV) if k.WLV > 0. else 0.
-            available_rt = max(0., k.NamountRT - (k.NamountRT / k.WRT) * k.DRRT - max(0., k.WRT - k.DRRT) * p.NRESIDRT) if k.WRT > 0. else 0.
-            available_st = max(0., k.NamountST - (k.NamountST / k.WST) * k.DRST - max(0., k.WST - k.DRST) * p.NRESIDST) if k.WST > 0. else 0.
+            available_lv = self._available_translocatable_after_death(k.NamountLV, k.WLV, k.DRLV, p.NRESIDLV)
+            available_rt = self._available_translocatable_after_death(k.NamountRT, k.WRT, k.DRRT, p.NRESIDRT)
+            available_st = self._available_translocatable_after_death(k.NamountST, k.WST, k.DRST, p.NRESIDST)
 
             r.RNtranslocationLV = min(requested_lv, available_lv)
             r.RNtranslocationRT = min(requested_rt, available_rt)
