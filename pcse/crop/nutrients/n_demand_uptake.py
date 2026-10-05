@@ -205,9 +205,22 @@ class N_Demand_Uptake(SimulationObject):
             r.RNtranslocationRT = 0.
             r.RNtranslocationST = 0.
         else:
-            r.RNtranslocationLV = r.RNtranslocation * (s.NTranslocatableLV / s.NTranslocatable)
-            r.RNtranslocationRT = r.RNtranslocation * (s.NTranslocatableRT / s.NTranslocatable) 
-            r.RNtranslocationST = r.RNtranslocation * (s.NTranslocatableST / s.NTranslocatable)
+            requested_lv = r.RNtranslocation * (s.NTranslocatableLV / s.NTranslocatable)
+            requested_rt = r.RNtranslocation * (s.NTranslocatableRT / s.NTranslocatable)
+            requested_st = r.RNtranslocation * (s.NTranslocatableST / s.NTranslocatable)
+
+            # Senescence and translocation draw from the same living-organ N
+            # pool on this rate day. Reserve the N already committed to death
+            # before committing internal translocation, while preserving the
+            # residual-N floor of the surviving donor biomass.
+            available_lv = max(0., k.NamountLV - (k.NamountLV / k.WLV) * k.DRLV - max(0., k.WLV - k.DRLV) * p.NRESIDLV) if k.WLV > 0. else 0.
+            available_rt = max(0., k.NamountRT - (k.NamountRT / k.WRT) * k.DRRT - max(0., k.WRT - k.DRRT) * p.NRESIDRT) if k.WRT > 0. else 0.
+            available_st = max(0., k.NamountST - (k.NamountST / k.WST) * k.DRST - max(0., k.WST - k.DRST) * p.NRESIDST) if k.WST > 0. else 0.
+
+            r.RNtranslocationLV = min(requested_lv, available_lv)
+            r.RNtranslocationRT = min(requested_rt, available_rt)
+            r.RNtranslocationST = min(requested_st, available_st)
+            r.RNtranslocation = r.RNtranslocationLV + r.RNtranslocationRT + r.RNtranslocationST
 
         r.RNuptake = (max(0., min(r.Ndemand - r.RNfixation, k.NAVAIL, p.RNUPTAKEMAX)) * NutrientLIMIT)
 
