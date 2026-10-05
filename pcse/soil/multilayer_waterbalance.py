@@ -898,7 +898,8 @@ class WaterBalanceLayered(SimulationObject):
         # self.rooted_layer_needs_reset = True
 
     def _on_IRRIGATE(self, amount, efficiency):
-        self._RIRR = amount * efficiency
+        # Independent irrigation events on the same rate day are additive.
+        self._RIRR += amount * efficiency
 
     def _setup_new_crop(self):
         """Retrieves the crop maximum rootable depth, validates it and updates the rooting status
