@@ -214,10 +214,24 @@
     },
     {
       "id": "WOFOST81-LOGIC-NTRANS01",
-      "status": "CONFIRMED_DEFECT_REPAIR_REQUIRED",
+      "status": "CONFIRMED_DOUBLE_CLAIM_RISK_REPAIR_DESIGN_REQUIRED",
       "confidence": "very_high",
       "component": "crop N demand/translocation",
-      "summary": "Organ uptake allocation is algebraically non-conservative whenever translocation > 0: donor weights add RNtranslocationLV/ST/RT while storage weight subtracts RNtranslocation, so the adjusted weights still sum to Ndemand, but each organ share is divided by Ndemand and capped against its adjusted weight. In the uncapped proportional case shares do sum to external supply; however donor death/translocation and uptake are based on pre-transition organ states and require a finite-donor transaction. Further executable repair is required before changing formulation."
+      "summary": "N translocatable donor pools are computed from pre-transition Namount and living biomass, while RNdeath for the same day independently claims N from that same pre-transition donor pool. Under sufficiently strong simultaneous senescence and translocation, RNdeath + RNtranslocation can exceed donor N available above zero, potentially driving organ N negative even though internal translocation itself algebraically cancels in the whole-crop balance. Repair must transactionally limit donor translocation after same-day N death/residual ownership."
+    },
+    {
+      "id": "WOFOST81-LOGIC-ROOT01",
+      "status": "REVIEWED_EXPLICIT_BOUNDARY_CONTRACT",
+      "confidence": "very_high",
+      "component": "root-depth/water/N coupling",
+      "summary": "Crop root depth RD is integrated before soil integration. MLWB then updates layer rooting weights to the new RD during soil integrate. Current-day crop ET and SNOMIN rates are subsequently calculated using that same new RD/root geometry. No one-day disagreement between water and N access was found at root-layer crossing; both see post-integration RD on the rate day."
+    },
+    {
+      "id": "WOFOST81-LOGIC-ROOT02",
+      "status": "STRUCTURAL_ASSUMPTION",
+      "confidence": "high",
+      "component": "root growth",
+      "summary": "Root depth growth is stopped only when FR equals exactly zero, not when actual root dry-matter growth is zero. The source documents this as an intentional legacy WOFOST modelling choice rather than an implementation accident."
     }
   ],
   "e2e_fixture": {
