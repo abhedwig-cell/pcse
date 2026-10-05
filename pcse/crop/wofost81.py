@@ -167,6 +167,12 @@ class Wofost81(SimulationObject):
         """
         
         self.params = self.Parameters(parvalues)
+        for name in ("REALLOC_STEM_FRACTION", "REALLOC_LEAF_FRACTION",
+                     "REALLOC_STEM_RATE", "REALLOC_LEAF_RATE",
+                     "REALLOC_EFFICIENCY"):
+            value = getattr(self.params, name)
+            if not 0. <= value <= 1.:
+                raise exc.PCSEError("%s must be within [0, 1]." % name)
         self.rates  = self.RateVariables(kiosk, publish=["DMI","ADMI", "REALLOC_LV", "REALLOC_ST", "REALLOC_SO"])
         self.kiosk = kiosk
         
