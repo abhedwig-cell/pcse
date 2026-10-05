@@ -237,6 +237,28 @@
       "confidence": "high",
       "component": "root growth",
       "summary": "Root depth growth is stopped only when FR equals exactly zero, not when actual root dry-matter growth is zero. The source documents this as an intentional legacy WOFOST modelling choice rather than an implementation accident."
+    },
+    {
+      "id": "WOFOST81-LOGIC-FIRST01",
+      "status": "CONFIRMED_ASYMMETRIC_BOUNDARY_CONTRACT",
+      "confidence": "very_high",
+      "component": "crop-cycle first/last day",
+      "summary": "On crop start, Engine creates the crop during AgroManager and immediately calculates crop rates on the start date; those rates are integrated at the next boundary. At maturity/harvest, the transition reaching finish is integrated first, then one additional set of crop rates may be calculated before finalize/delete but is never integrated. First and last calendar-labelled rate days are therefore not symmetric."
+    },
+    {
+      "id": "WOFOST81-LOGIC-LASTN01",
+      "status": "INTERPRETATION_RISK",
+      "confidence": "high",
+      "component": "final-day N/water rates",
+      "summary": "Because finish is deferred until after calc_rates, RNuptake/RNfixation/TRA and related soil rates can be calculated and observable on the finish date although they are not realized by a subsequent crop integration if the crop is deleted/terminated. State totals remain transition-based, but final-day rate output can be mistaken for realized flux."
+    },
+    {
+      "id": "WOFOST81-LOGIC-CI01",
+      "status": "PROCESS_POLICY",
+      "confidence": "very_high",
+      "component": "qualification infrastructure",
+      "summary": "Deep-logic GitHub workflow changed to manual-only. New commits no longer enqueue Actions automatically; local/algebraic qualification is preferred and Actions reserved for final persisted evidence.",
+      "repair_commit": "79c4fcbfa2a63be5e9081f65e0dd8355b9096cbd"
     }
   ],
   "e2e_fixture": {
