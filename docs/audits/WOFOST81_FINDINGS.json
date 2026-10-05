@@ -109,6 +109,36 @@
       "evidence_run": "36983073666",
       "repair_commit": "e75838a4e97a8e763318feb9ac3ab4ad395ec149",
       "qualification_run": "36983146386"
+    },
+    {
+      "id": "WOFOST81-LOGIC-CC01",
+      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING",
+      "confidence": "very_high",
+      "component": "CropCalendar",
+      "summary": "When harvest date and max_duration coincide, the baseline second independent if overwrites finish_type='harvest' with 'max_duration'. Harvest is an explicit management cause and now retains precedence.",
+      "repair_commit": "b9b9165d35006688006c7fd4790bb08afa9158a7"
+    },
+    {
+      "id": "WOFOST81-LOGIC-SE01",
+      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING",
+      "confidence": "high",
+      "component": "StateEventsDispatcher",
+      "summary": "A state event first observed exactly at its threshold is silently initialized with sign=0 and never fires unless the state subsequently crosses away and back. Exact threshold at first observation now dispatches once.",
+      "repair_commit": "b9b9165d35006688006c7fd4790bb08afa9158a7"
+    },
+    {
+      "id": "WOFOST81-LOGIC-ENG01",
+      "status": "STRUCTURAL_ORDERING_CONTRACT",
+      "confidence": "very_high",
+      "component": "Engine",
+      "summary": "Each model day integrates rates calculated for the previous model date, then applies current-day agromanagement, then calculates current-day rates. Timed management therefore affects current-day rates but not the integration that has already occurred on that date; state-triggered events inspect post-integration current states."
+    },
+    {
+      "id": "WOFOST81-LOGIC-SOIL01",
+      "status": "STRUCTURAL_ORDERING_CONTRACT",
+      "confidence": "high",
+      "component": "SoilModuleWrapper",
+      "summary": "Within calc_rates water balance executes before SNOMIN; within integrate water balance executes before SNOMIN. SNOMIN therefore consumes water-flow/rate information under a fixed water-first ownership order."
     }
   ],
   "e2e_fixture": {
@@ -123,5 +153,10 @@
     "status": "GREEN",
     "run": "36983335139",
     "scope": "19 WOFOST81 scientific/component/E2E tests plus 12 canonical legacy WOFOST full-model regressions"
+  },
+  "logic_audit": {
+    "branch": "audit/wofost81-deep-logic",
+    "base": "88e59ec0e17e879c3adbec6f7667ab332b5c2908",
+    "scope": "execution lifecycle, state machines, event ordering, stale-state and boundary logic"
   }
 }
