@@ -65,5 +65,35 @@ class TestStateEventLogic(unittest.TestCase):
         self.assertEqual(len(fired), 1)
 
 
+    def test_rising_jump_crosses_all_thresholds_once(self):
+        kiosk = VariableKiosk()
+        owner = 99992
+        kiosk.register_variable(owner, "Y", "S", publish=True)
+        kiosk.set_variable(owner, "Y", 0.0)
+        fired = []
+
+        def on_event(**kwargs):
+            fired.append(kwargs["N_amount"])
+
+        dispatcher.connect(on_event, signal=signals.apply_n)
+        try:
+            dsp = StateEventsDispatcher(
+                kiosk, event_signal="apply_n", event_state="Y",
+                zero_condition="rising", name="multi", comment="",
+                events_table=[
+                    {0.3: {"N_amount": 3.0, "N_recovery": 1.0}},
+                    {0.6: {"N_amount": 6.0, "N_recovery": 1.0}},
+                    {1.1: {"N_amount": 11.0, "N_recovery": 1.0}},
+                ],
+            )
+            dsp(dt.date(2026, 1, 1))
+            kiosk.set_variable(owner, "Y", 1.2)
+            dsp(dt.date(2026, 1, 2))
+            dsp(dt.date(2026, 1, 3))
+        finally:
+            dispatcher.disconnect(on_event, signal=signals.apply_n)
+
+        self.assertEqual(fired, [3.0, 6.0, 11.0])
+
 if __name__ == "__main__":
     unittest.main()
