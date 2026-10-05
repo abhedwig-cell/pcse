@@ -550,8 +550,11 @@ class SNOMIN(SimulationObject):
         self._RORGMATAM = np.concatenate((self._RORGMATAM, RORGMAT_am), axis = 0)
         self._RCORGAM = np.concatenate((self._RCORGAM, RCORG_am), axis = 0)
         self._RNORGAM = np.concatenate(( self._RNORGAM, RNORG_am), axis = 0)
-        self._RNH4AM = RNH4_am
-        self._RNO3AM = RNO3_am
+        # Multiple independent amendments may be dispatched on the same rate
+        # day. Mineral-N contributions must accumulate rather than let the last
+        # event overwrite earlier applications.
+        self._RNH4AM = self._RNH4AM + RNH4_am
+        self._RNO3AM = self._RNO3AM + RNO3_am
 
     def get_infiltration_rate(self, k):
         infiltration_rate_m_per_d = k.RIN * self.cm_to_m
