@@ -29,6 +29,7 @@ class WaterBalanceLayered_PP(SimulationObject):
 
     # Indicates that a new crop has started
     crop_start = Bool(False)
+    rooted_layer_needs_reset = Bool(False)
 
     class Parameters(ParamTemplate):
         pass
@@ -826,7 +827,11 @@ class WaterBalanceLayered(SimulationObject):
             s.CRT = 0.0
 
         # change of rootzone
-        RD = self._determine_rooting_depth()
+        if self.rooted_layer_needs_reset and "RD" not in self.kiosk:
+            RD = self._default_RD
+            self.rooted_layer_needs_reset = False
+        else:
+            RD = self._determine_rooting_depth()
         if abs(RD - self._RDold) > 0.001:
             self.soil_profile.determine_rooting_status(RD, self._RDM)
 
@@ -893,9 +898,10 @@ class WaterBalanceLayered(SimulationObject):
         self.crop_start = True
 
     def _on_CROP_FINISH(self):
-        pass
-        # self.in_crop_cycle = False
-        # self.rooted_layer_needs_reset = True
+        # Outside a crop cycle, root-zone summary states must no longer retain
+        # the geometry of the finished crop. The next integration will rebuild
+        # W/WLOW/SM_MEAN with the default fallow rooting depth.
+        self.rooted_layer_needs_reset = True
 
     def _on_IRRIGATE(self, amount, efficiency):
         # Independent irrigation events on the same rate day are additive.
