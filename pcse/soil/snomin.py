@@ -513,6 +513,22 @@ class SNOMIN(SimulationObject):
         s = self.states
         delt = 1.
 
+        # Hard physical/event-domain validation. Invalid amendment composition
+        # must fail at the ownership boundary rather than enter soil pools.
+        if amount is None or amount < 0.:
+            raise exc.PCSEError("SNOMIN amendment amount must be non-negative.")
+        if application_depth is None or application_depth <= 0.:
+            raise exc.PCSEError("SNOMIN application_depth must be positive.")
+        if cnratio is None or cnratio <= 0.:
+            raise exc.PCSEError("SNOMIN amendment C:N ratio must be positive.")
+        for name, value in (("f_orgmat", f_orgmat), ("f_NH4N", f_NH4N), ("f_NO3N", f_NO3N)):
+            if value is None or not 0. <= value <= 1.:
+                raise exc.PCSEError("%s must be within [0, 1]." % name)
+        if f_NH4N + f_NO3N > 1.:
+            raise exc.PCSEError("f_NH4N + f_NO3N cannot exceed 1.")
+        if initial_age is None or initial_age < 0.:
+            raise exc.PCSEError("SNOMIN amendment initial_age must be non-negative.")
+
         # Create model components
         sinm = self.SoilInorganicNModel()
         sonm = self.SoilOrganicNModel()
