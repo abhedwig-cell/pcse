@@ -20,6 +20,12 @@
         "NuptakeTotal_baseline": 22.351471,
         "NuptakeTotal_repaired": 0.363096,
         "interpretation": "Extreme low-N/high-C:N synthetic qualification case; demonstrates material causal amplification but is not a field-effect estimate."
+      },
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
       }
     },
     {
@@ -58,7 +64,13 @@
       "summary": "Unbounded advective export can exceed a finite NH4/NO3 pool; production transport now limits donor export and preserves internal transfer mass.",
       "repair_commit": "8f3f3d03bfde9be08c93fc8b315664151ab75f94",
       "qualification_run": "36981833631",
-      "e2e_smoke_run": "36982991452"
+      "e2e_smoke_run": "36982991452",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      }
     },
     {
       "id": "WOFOST81-NBAL-01",
@@ -68,7 +80,13 @@
       "summary": "Crop N balance is checked in calc_rates before same-day rates are integrated, so it verifies the prior integrated state and may not independently check the terminal crop-day update.",
       "repair_commit": "77e7b255fb63789d68200b0f457bb7b556fea4e7",
       "qualification_run": "36982143473",
-      "e2e_smoke_run": "36982991452"
+      "e2e_smoke_run": "36982991452",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      }
     },
     {
       "id": "WOFOST81-TEST-LEGACY-01",
@@ -80,7 +98,7 @@
     },
     {
       "id": "WOFOST81-REALLOC-01",
-      "status": "COMPONENT_QUALIFIED_E2E_SMOKE_GREEN_TARGETED_E2E_PENDING",
+      "status": "COMPONENT_AND_TARGETED_SYNTHETIC_E2E_QUALIFIED_LOCAL",
       "confidence": "very_high",
       "component": "biomass reallocation",
       "summary": "Requested leaf/stem reallocation is capped against a fixed start-of-reallocation quota, not same-day surviving donor biomass. Leaf integration removes nothing when REALLOC_LV >= post-senescence leaf biomass; stem integration can drive WST negative, while storage organs are still credited from requested REALLOC_SO. A transactional donor-limited repair is required.",
@@ -91,7 +109,14 @@
       ],
       "test_commit": "21a31c2b98a870cb8b7ecfd4247a1205e457eb46",
       "qualification_run": "36982745863",
-      "e2e_smoke_run": "36982991452"
+      "e2e_smoke_run": "36982991452",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "COMPONENT_QUALIFIED_E2E_SMOKE_GREEN_TARGETED_E2E_PENDING"
     },
     {
       "id": "WOFOST81-NBAL-02",
@@ -112,19 +137,33 @@
     },
     {
       "id": "WOFOST81-LOGIC-CC01",
-      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "very_high",
       "component": "CropCalendar",
       "summary": "When harvest date and max_duration coincide, the baseline second independent if overwrites finish_type='harvest' with 'max_duration'. Harvest is an explicit management cause and now retains precedence.",
-      "repair_commit": "b9b9165d35006688006c7fd4790bb08afa9158a7"
+      "repair_commit": "b9b9165d35006688006c7fd4790bb08afa9158a7",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING"
     },
     {
       "id": "WOFOST81-LOGIC-SE01",
-      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "high",
       "component": "StateEventsDispatcher",
       "summary": "A state event first observed exactly at its threshold is silently initialized with sign=0 and never fires unless the state subsequently crosses away and back. Exact threshold at first observation now dispatches once.",
-      "repair_commit": "b9b9165d35006688006c7fd4790bb08afa9158a7"
+      "repair_commit": "b9b9165d35006688006c7fd4790bb08afa9158a7",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING"
     },
     {
       "id": "WOFOST81-LOGIC-ENG01",
@@ -195,7 +234,13 @@
       "confidence": "very_high",
       "component": "SNOMIN management events",
       "summary": "Multiple apply_n_snomin events on the same rate day append organic amendment pools but baseline mineral NH4/NO3 placeholders are assigned, so each later event overwrites mineral N from earlier events. Repair accumulates mineral-N contributions.",
-      "repair_commit": "5b4a7d035069e8351c6002d9ca5ebd62309ab2a0"
+      "repair_commit": "5b4a7d035069e8351c6002d9ca5ebd62309ab2a0",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      }
     },
     {
       "id": "WOFOST81-LOGIC-IRR01",
@@ -203,7 +248,13 @@
       "confidence": "very_high",
       "component": "MLWB irrigation events",
       "summary": "WaterBalanceLayered._on_IRRIGATE assigns _RIRR, so multiple irrigation signals before calc_rates silently retain only the last event. Repair makes independent same-day irrigation events additive.",
-      "repair_commit": "04347aaf790b7b8755eb28b0c2afe3f594931a42"
+      "repair_commit": "04347aaf790b7b8755eb28b0c2afe3f594931a42",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      }
     },
     {
       "id": "WOFOST81-LOGIC-RAINIRR01",
@@ -214,7 +265,7 @@
     },
     {
       "id": "WOFOST81-LOGIC-NTRANS01",
-      "status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "very_high",
       "component": "crop N demand/translocation",
       "summary": "N translocatable donor pools are computed from pre-transition Namount and living biomass, while RNdeath for the same day independently claims N from that same pre-transition donor pool. Under sufficiently strong simultaneous senescence and translocation, RNdeath + RNtranslocation can exceed donor N available above zero, potentially driving organ N negative even though internal translocation itself algebraically cancels in the whole-crop balance. Repair must transactionally limit donor translocation after same-day N death/residual ownership.",
@@ -222,7 +273,14 @@
         "22d2164b7c2412efcff7cf444910824c963e6889",
         "e8b3e8e6cb55d745cbba029b0d0a686aa067fc9d"
       ],
-      "test_commit": "f45fde736934ab9c98c1a4412e7d47e5157bf789"
+      "test_commit": "f45fde736934ab9c98c1a4412e7d47e5157bf789",
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "REPAIR_IMPLEMENTED_QUALIFICATION_PENDING"
     },
     {
       "id": "WOFOST81-LOGIC-ROOT01",
@@ -258,7 +316,8 @@
       "confidence": "very_high",
       "component": "qualification infrastructure",
       "summary": "Deep-logic GitHub workflow changed to manual-only. New commits no longer enqueue Actions automatically; local/algebraic qualification is preferred and Actions reserved for final persisted evidence.",
-      "repair_commit": "79c4fcbfa2a63be5e9081f65e0dd8355b9096cbd"
+      "repair_commit": "79c4fcbfa2a63be5e9081f65e0dd8355b9096cbd",
+      "local_runtime_update": "Full checkout and qualification succeeded in this environment; prior environment restriction remains historical."
     },
     {
       "id": "WOFOST81-LOGIC-OUT01",
@@ -290,14 +349,22 @@
     },
     {
       "id": "WOFOST81-LOGIC-ROT02",
-      "status": "CONFIRMED_DEFECT_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "very_high",
       "component": "MLWB crop rotation",
       "summary": "After crop_finish and crop deletion, MLWB baseline retains the finished crop's rooting weights and _RDold while RD disappears from the kiosk. Fallow root-zone summaries can therefore remain based on the previous crop geometry until another crop starts. Repair marks root geometry for reset and rebuilds summary weights at default fallow RD on the next integration.",
       "repair_commits": [
         "93c13cf642feb683c2c0bc24cb8013411e8167dd",
         "3f02fb28aaa67e56e15e2a9132ed04c620972d43"
-      ]
+      ],
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "CONFIRMED_DEFECT_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "qualification_fix": "Independent _RDold trait restores fixed 10 cm fallow depth; inherited shared descriptor prevented original reset."
     },
     {
       "id": "WOFOST81-LOGIC-SNBUF01",
@@ -329,43 +396,72 @@
     },
     {
       "id": "WOFOST81-CONFIG-REALLOC01",
-      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "very_high",
       "component": "WOFOST81 reallocation parameters",
       "summary": "REALLOC_LEAF/STEM_FRACTION, REALLOC_LEAF/STEM_RATE and REALLOC_EFFICIENCY are unconstrained Floats. Negative fractions/rates, fractions >1 or efficiencies outside [0,1] are accepted and can invert transfers or create more storage biomass than committed donor transfer. Hard physical bounds should be validated.",
       "repair_commits": [
         "5c88ff4f6f1eb339c32a122846cfc906af663103"
-      ]
+      ],
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING"
     },
     {
       "id": "WOFOST81-CONFIG-N01",
-      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "very_high",
       "component": "crop N parameters",
       "summary": "NFIX_FR, NMAXRT_FR, NMAXST_FR and residual N fractions are unconstrained Floats. NFIX_FR outside [0,1] can make fixation exceed demand or become negative; negative residual/max fractions invalidate donor and stress logic. Hard fraction bounds are not enforced.",
       "repair_commits": [
         "fa8502715d4cec5811e60548acc1a065b9d950d8"
-      ]
+      ],
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING"
     },
     {
       "id": "WOFOST81-CONFIG-ET01",
-      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "high",
       "component": "evapotranspiration",
       "summary": "IAIRDU and IOX are documented binary switches but represented as unconstrained Float. Values other than exact 0/1 silently select branches by equality tests, creating undocumented semantics.",
       "repair_commits": [
         "6ba2120f803c61ecda00ce4cc3ded7125089adc1"
-      ]
+      ],
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "qualification_fix": "Import exceptions as exc; invalid-switch runtime paths now raise PCSEError instead of NameError."
     },
     {
       "id": "WOFOST81-CONFIG-SN01",
-      "status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "status": "QUALIFIED_LOCAL",
       "confidence": "very_high",
       "component": "SNOMIN amendment event",
       "summary": "apply_n_snomin accepts amount, application_depth, cnratio and composition fractions without explicit domain checks. application_depth <=0 can reach division-by-zero/invalid allocation after only a '< top layer' coercion; negative amount/C:N or composition fractions outside physical ranges can create invalid material/N states.",
       "repair_commits": [
         "4d48a9ff1fba1f79d32d4f2a3fa69a301e20d7a4"
-      ]
+      ],
+      "local_qualification": {
+        "status": "QUALIFIED",
+        "evidence": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+        "repair_code_head": "4937363",
+        "scope": "local component/runtime/E2E invariants and canonical legacy regression; no field-impact claim"
+      },
+      "pre_local_qualification_status": "VALIDATION_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING"
     },
     {
       "id": "WOFOST81-CONFIG-ROOT01",
@@ -393,7 +489,7 @@
       "status": "REVIEWED_CONSERVED_CORE",
       "confidence": "very_high",
       "component": "assimilation-respiration-DMI core",
-      "summary": "Across WOFOST72/73/81 the main PGASS→RFTRA→GASS→MRES→ASRC→CVF→DMI sequence and carbon-balance formulation are materially conserved. No unexplained 8.1 divergence established in this core."
+      "summary": "Across WOFOST72/73/81 the main PGASS\u2192RFTRA\u2192GASS\u2192MRES\u2192ASRC\u2192CVF\u2192DMI sequence and carbon-balance formulation are materially conserved. No unexplained 8.1 divergence established in this core."
     },
     {
       "id": "WOFOST81-XVER-LIFE01",
@@ -421,7 +517,7 @@
     "base": "88e59ec0e17e879c3adbec6f7667ab332b5c2908",
     "scope": "execution lifecycle, state machines, event ordering, stale-state and boundary logic"
   },
-  "qualification_20261005": {
+  "qualification_20261005_prior_attempt": {
     "mode": "local qualification attempted; repository clone blocked by execution-container DNS/network isolation",
     "actions_used": false,
     "branch": "audit/wofost81-deep-logic",
@@ -434,5 +530,82 @@
     "result": "STATIC_AND_PURE_ORACLES_PASS_FULL_RUNTIME_PENDING",
     "discovered_and_repaired": "CONFIG-N01 validation used exc.PCSEError without importing exceptions; fixed in 7521c86fcda641566f194b14b85756c487727101",
     "blocker": "Container cannot resolve github.com, so full local package checkout/test execution is unavailable in this chat runtime."
+  },
+  "qualification_20261005": {
+    "status": "ADMISSION_READY_LOCAL_SCOPED",
+    "mode": "Local checkout, full repair qualification, baseline-controlled broad regression probe",
+    "actions_used": false,
+    "branch": "audit/wofost81-deep-logic",
+    "starting_head": "044f35788137f39a60e4d2533ace4fc56c2d6cbc",
+    "qualified_code_head": "4937363",
+    "base": "88e59ec0e17e879c3adbec6f7667ab332b5c2908",
+    "commands_document": "docs/audits/WOFOST81_LOCAL_QUALIFICATION.md",
+    "results_document": "docs/audits/WOFOST81_LOCAL_QUALIFICATION_RESULTS.json",
+    "results": {
+      "deep-final": {
+        "total": 17,
+        "passed": 17,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 15.17,
+        "stdout_sha256": "f6ffcb1ecf311efe91705b471227b8256e88aa6fd0a7d2270601ef779c3e6030"
+      },
+      "scientific-final": {
+        "total": 19,
+        "passed": 19,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 3.162,
+        "stdout_sha256": "bbe280c1da6b46defd440febbf8cd9205ee7cabff46833f1cbf3182ead5629ef"
+      },
+      "legacy-final": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 3.549,
+        "stdout_sha256": "878ff6bb0027853dc340714afe4516a6ff9434c15cf5c282b100b7548cd0f84f"
+      },
+      "repository-final": {
+        "total": 30,
+        "passed": 30,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 3.697,
+        "stdout_sha256": "f674456736a6c40e45310df18505943fd1bad4587d79e40e1d91228d7b213a71"
+      },
+      "yaml": {
+        "total": 456,
+        "passed": 392,
+        "failed": 64,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 562.67,
+        "stdout_sha256": "a31e40fb5b22c55c9bd37dc20f7e0137a8cea4d31485cac74e2955cadedf42fa"
+      },
+      "yaml-base": {
+        "total": 456,
+        "passed": 392,
+        "failed": 64,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 663.357,
+        "stdout_sha256": "383b4292d2fd20220e428f8c59aaf00301a84055b5b7d7081031a378af9e7da5"
+      }
+    },
+    "compile_import": {
+      "passed": 7,
+      "failed": 0
+    },
+    "extra_repairs": [
+      "CONFIG-ET01 missing exceptions import",
+      "LOGIC-ROT02 prerequisite: separate inherited aliased _RDold/_default_RD Traitlets descriptors"
+    ],
+    "regression_status": "No new failures: all 64 broad YAML failures match qualified base by exact test filename and assertion text.",
+    "scope_limit": "Entire raw repository suite is NOT green. All repair-relevant and canonical supported suites pass; inherited PGASS/NAVAIL reference failures are preserved explicitly, not repaired or silently skipped."
   }
 }

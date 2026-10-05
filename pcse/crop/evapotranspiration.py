@@ -5,6 +5,7 @@ from math import exp
 
 import array
 import numpy as np
+from .. import exceptions as exc
 
 from ..traitlets import Float, Int, Instance, Bool, Instance
 from ..decorators import prepare_rates, prepare_states

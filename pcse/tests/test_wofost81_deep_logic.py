@@ -69,6 +69,28 @@ class TestStateEventLogic(unittest.TestCase):
         self.assertEqual(len(fired), 1)
 
 
+    def test_first_exact_threshold_fires_once_for_all_directions(self):
+        for direction in ("rising", "falling", "either"):
+            with self.subTest(direction=direction):
+                kiosk = VariableKiosk()
+                kiosk.register_variable(99993, "Z", "S", publish=True)
+                kiosk.set_variable(99993, "Z", 1.)
+                fired = []
+                def on_event(**kwargs):
+                    fired.append(kwargs)
+                dispatcher.connect(on_event, signal=signals.apply_n)
+                try:
+                    dsp = StateEventsDispatcher(
+                        kiosk, event_signal="apply_n", event_state="Z",
+                        zero_condition=direction, name="exact", comment="",
+                        events_table=[{1.: {"N_amount": 1., "N_recovery": 1.}}],
+                    )
+                    dsp(dt.date(2026, 1, 1))
+                    dsp(dt.date(2026, 1, 2))
+                    self.assertEqual(len(fired), 1)
+                finally:
+                    dispatcher.disconnect(on_event, signal=signals.apply_n)
+
     def test_rising_jump_crosses_all_thresholds_once(self):
         kiosk = VariableKiosk()
         owner = 99992
@@ -150,6 +172,142 @@ class TestRepairOracles(unittest.TestCase):
 
     def test_n_parameter_validation_exception_is_importable(self):
         self.assertTrue(issubclass(exc.PCSEError, Exception))
+
+
+class TestIntegratedRepairQualification(unittest.TestCase):
+    @staticmethod
+    def model(crop_changes=None, agro=None):
+        from .test_wofost81_snomin_e2e import (
+            _crop_parameters, _soil_and_site, _weather, _agro,
+        )
+        from pcse.base import ParameterProvider
+        from pcse.models import Wofost81_NWLP_MLWB_SNOMIN
+        crop = _crop_parameters()
+        crop.update(crop_changes or {})
+        soil, site = _soil_and_site()
+        return Wofost81_NWLP_MLWB_SNOMIN(
+            ParameterProvider(cropdata=crop, soildata=soil, sitedata=site),
+            _weather(), agro or _agro(),
+        )
+
+    def test_reallocation_transaction_is_activated_in_full_lifecycle(self):
+        m = self.model(dict(REALLOC_DVS=1., REALLOC_LEAF_FRACTION=1.,
+                            REALLOC_STEM_FRACTION=1., REALLOC_LEAF_RATE=1.,
+                            REALLOC_STEM_RATE=1., REALLOC_EFFICIENCY=0.8))
+        activated = False
+        while m.crop is not None:
+            c = m.crop
+            k = m.kiosk
+            r = c.rates
+            lv, st = r.REALLOC_LV, r.REALLOC_ST
+            activated |= lv + st > 0.
+            self.assertLessEqual(lv, max(0., k.WLV - k.DRLV) + 1e-12)
+            self.assertLessEqual(st, max(0., k.WST - k.DRST) + 1e-12)
+            self.assertAlmostEqual(r.REALLOC_SO, 0.8 * (lv + st))
+            m.run(days=1)
+            if m.crop is not None:
+                self.assertGreaterEqual(m.kiosk.WLV, -1e-12)
+                self.assertGreaterEqual(m.kiosk.WST, -1e-12)
+        self.assertTrue(activated)
+
+    def test_irrigation_rate_consumes_accumulated_events_once(self):
+        m = self.model()
+        wb = m.soil.waterbalance
+        wb._on_IRRIGATE(2., 0.5)
+        wb._on_IRRIGATE(3., 0.8)
+        wb.calc_rates(m.day, m.drv)
+        self.assertAlmostEqual(wb.rates.RIRR, 3.4)
+        self.assertEqual(wb._RIRR, 0.)
+        wb.calc_rates(m.day, m.drv)
+        self.assertEqual(wb.rates.RIRR, 0.)
+
+    def test_configuration_rejects_invalid_crop_domains(self):
+        names = ["REALLOC_STEM_FRACTION", "REALLOC_LEAF_FRACTION",
+                 "REALLOC_STEM_RATE", "REALLOC_LEAF_RATE", "REALLOC_EFFICIENCY",
+                 "NFIX_FR", "NMAXRT_FR", "NMAXST_FR", "NRESIDLV", "NRESIDST", "NRESIDRT"]
+        for name in names:
+            for value in (-0.1, 1.1):
+                with self.subTest(name=name, value=value):
+                    with self.assertRaisesRegex(exc.PCSEError, name):
+                        self.model({name: value})
+        with self.assertRaisesRegex(exc.PCSEError, "NMAXSO"):
+            self.model({"NMAXSO": -0.1})
+
+    def test_configuration_rejects_invalid_layered_et_switches(self):
+        for name in ("IAIRDU", "IOX"):
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(exc.PCSEError, name):
+                    self.model({name: 2})
+
+    def test_amendments_accumulate_and_invalid_events_leave_pools_unchanged(self):
+        import numpy as np
+        m = self.model()
+        n = m.soil.nutrientbalance
+        event = dict(amount=100., application_depth=30., cnratio=10.,
+                     f_orgmat=0.2, f_NH4N=0.1, f_NO3N=0.2, initial_age=0.)
+        before_nh4 = n._RNH4AM.copy()
+        before_no3 = n._RNO3AM.copy()
+        n._on_APPLY_N_SNOMIN(**event)
+        first_nh4 = np.asarray(n._RNH4AM - before_nh4, dtype=float)
+        first_no3 = np.asarray(n._RNO3AM - before_no3, dtype=float)
+        n._on_APPLY_N_SNOMIN(**event)
+        np.testing.assert_allclose(np.asarray(n._RNH4AM - before_nh4, dtype=float), 2 * first_nh4)
+        np.testing.assert_allclose(np.asarray(n._RNO3AM - before_no3, dtype=float), 2 * first_no3)
+        self.assertAlmostEqual(first_nh4.sum(), 0.001)
+        self.assertAlmostEqual(first_no3.sum(), 0.002)
+        invalid = dict(amount=-1., application_depth=0., cnratio=0.,
+                       f_orgmat=1.1, f_NH4N=-0.1, f_NO3N=1.1, initial_age=-1.)
+        for name, value in invalid.items():
+            with self.subTest(name=name):
+                old = n.states.NH4.copy()
+                shape = n.states.ORGMAT.shape
+                with self.assertRaises(exc.PCSEError):
+                    n._on_APPLY_N_SNOMIN(**dict(event, **{name: value}))
+                np.testing.assert_array_equal(n.states.NH4, old)
+                self.assertEqual(n.states.ORGMAT.shape, shape)
+        with self.assertRaises(exc.PCSEError):
+            n._on_APPLY_N_SNOMIN(**dict(event, f_NH4N=0.6, f_NO3N=0.6))
+
+    def test_fallow_reset_rebuilds_root_zone_without_changing_total_water(self):
+        from .test_wofost81_snomin_e2e import _agro
+        agro = _agro()
+        agro[0][dt.date(2010, 4, 16)]["CropCalendar"]["crop_end_date"] = dt.date(2010, 5, 20)
+        agro.append({dt.date(2010, 5, 25): None})
+        m = self.model(agro=agro)
+        while m.crop is not None:
+            m.run(days=1)
+        wb = m.soil.waterbalance
+        self.assertGreater(wb._RDold, wb._default_RD)
+        self.assertNotIn("RD", m.kiosk)
+        m.run(days=1)
+        self.assertEqual(wb._RDold, wb._default_RD)
+        self.assertFalse(wb.rooted_layer_needs_reset)
+        self.assertAlmostEqual(wb.states.W + wb.states.WLOW + wb.states.WBOT,
+                               wb.states.WC.sum())
+        self.assertAlmostEqual(wb.states.SM_MEAN, wb.states.W / wb._default_RD)
+        m.run_till_terminate()  # invokes the full water/N balance checks
+
+    def test_n_translocation_runtime_reserves_senescing_donors(self):
+        from .test_wofost81_snomin_e2e import _crop_parameters
+        k = VariableKiosk()
+        values = dict(DVS=1.5, RFTRA=1., NAVAIL=0., WLV=100., WST=100., WRT=100.,
+                      WSO=1000., NamountLV=10., NamountST=10., NamountRT=10.,
+                      NamountSO=0., GRLV=0., GRST=0., GRRT=0., GRSO=0.,
+                      DRLV=80., DRST=100., DRRT=0.)
+        for name, value in values.items():
+            k.register_variable(87654, name, "S", publish=True)
+            k.set_variable(87654, name, value)
+        p = _crop_parameters()
+        p.update(TCNT=1., DVS_N_TRANSL=0., NMAXSO=0.1,
+                 NRESIDLV=0.02, NRESIDST=0.02, NRESIDRT=0.02)
+        obj = N_Demand_Uptake(dt.date(2010, 4, 16), k, p)
+        obj.calc_rates(dt.date(2010, 4, 16), None)
+        self.assertAlmostEqual(obj.rates.RNtranslocationLV, 1.6)
+        self.assertEqual(obj.rates.RNtranslocationST, 0.)
+        self.assertAlmostEqual(obj.rates.RNtranslocationRT, 8.)
+        self.assertAlmostEqual(obj.rates.RNtranslocation, 9.6)
+        self.assertAlmostEqual(obj.rates.RNuptake, 0.)
+        self.assertGreaterEqual(10. - 8. - obj.rates.RNtranslocationLV, 0.4 - 1e-12)
 
 
 if __name__ == "__main__":

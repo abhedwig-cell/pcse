@@ -247,7 +247,7 @@ class WaterBalanceLayered(SimulationObject):
     ========== ==================================================  ====================
     """
     _default_RD = Float(10.)  # default rooting depth at 10 cm
-    _RDold = _default_RD
+    _RDold = Float(10.)  # independent of the fixed fallow rooting depth
     _RINold = Float(0.)
     _RIRR = Float(0.)
     _DSLR = Int(None)
