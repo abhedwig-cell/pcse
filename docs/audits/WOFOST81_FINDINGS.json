@@ -259,6 +259,41 @@
       "component": "qualification infrastructure",
       "summary": "Deep-logic GitHub workflow changed to manual-only. New commits no longer enqueue Actions automatically; local/algebraic qualification is preferred and Actions reserved for final persisted evidence.",
       "repair_commit": "79c4fcbfa2a63be5e9081f65e0dd8355b9096cbd"
+    },
+    {
+      "id": "WOFOST81-LOGIC-OUT01",
+      "status": "CONFIRMED_OUTPUT_SEMANTICS_RISK",
+      "confidence": "very_high",
+      "component": "Engine output",
+      "summary": "Daily output is saved after current-day calc_rates but reads both states and rates through get_variable. States represent the just-integrated transition; rates represent the next transition. A single output row therefore intentionally mixes two temporal ownership levels. Rate variables in daily output must not be interpreted as fluxes already realized in that row's states."
+    },
+    {
+      "id": "WOFOST81-LOGIC-OUT02",
+      "status": "REVIEWED_CONSISTENT_STATE_FINALIZATION",
+      "confidence": "high",
+      "component": "summary/terminal output",
+      "summary": "Crop summary output is collected after crop.finalize; terminal output is collected after soil.finalize. State-based final metrics therefore use finalized states. No stale-state defect established, but summary and terminal channels have different component scopes by design."
+    },
+    {
+      "id": "WOFOST81-LOGIC-MGMT01",
+      "status": "STRUCTURAL_COMPOSITION_CONTRACT",
+      "confidence": "high",
+      "component": "AgroManager timed/state events",
+      "summary": "TimedEventsDispatcher forbids duplicate dates only within one dispatcher, not across separate dispatchers or timed+state dispatchers. Multiple independent signals of the same physical type can therefore legitimately reach a handler on one day; handlers must be additive/idempotent as appropriate. AMEND02 and IRR01 demonstrate why this is an ownership contract."
+    },
+    {
+      "id": "WOFOST81-LOGIC-KIOSK01",
+      "status": "REVIEWED_STRONG_STALE_VALUE_GUARD",
+      "confidence": "very_high",
+      "component": "VariableKiosk/Engine",
+      "summary": "Engine flushes published states before integration and published rates after integration/zerofy; components republish via prepared state/rate decorators. Crop deletion deregisters variables. This materially reduces stale-value reuse and no generic stale-kiosk defect was found."
+    },
+    {
+      "id": "WOFOST81-LOGIC-ROT02",
+      "status": "OPEN_ROTATION_SOIL_STATE_ASSUMPTION",
+      "confidence": "high",
+      "component": "MLWB crop rotation",
+      "summary": "MLWB receives crop_finish but intentionally does nothing; root-zone layer weights remain at the finished crop's RD between crops until the next crop_start setup resets rooting status to default RD. Soil water states continue, but root-zone summary variables during fallow can retain the previous crop geometry. Requires interpretation/rotation test before deciding whether this is intended."
     }
   ],
   "e2e_fixture": {
