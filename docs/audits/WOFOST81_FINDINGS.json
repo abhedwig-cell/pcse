@@ -139,6 +139,27 @@
       "confidence": "high",
       "component": "SoilModuleWrapper",
       "summary": "Within calc_rates water balance executes before SNOMIN; within integrate water balance executes before SNOMIN. SNOMIN therefore consumes water-flow/rate information under a fixed water-first ownership order."
+    },
+    {
+      "id": "WOFOST81-LOGIC-NCOUP01",
+      "status": "HIGH_PRIORITY_STRUCTURAL_LAG",
+      "confidence": "very_high",
+      "component": "crop-soil N coupling",
+      "summary": "Engine calculates crop rates before soil rates. Crop RNuptake demand is therefore computed from NAVAIL state integrated at the start of the day, then SNOMIN consumes that same day's RNuptake. This is an explicit one-way daily lag/explicit coupling contract: soil transformations calculated later cannot revise same-day crop demand."
+    },
+    {
+      "id": "WOFOST81-LOGIC-WCOUP01",
+      "status": "STRUCTURAL_EXPLICIT_COUPLING",
+      "confidence": "very_high",
+      "component": "crop-soil water coupling",
+      "summary": "Crop evapotranspiration calculates TRA/WTRALY before the soil water balance calculates its current-day rates; MLWB then uses published crop extraction as a prescribed sink. The next day's crop stress sees the integrated soil state. This is an explicit daily crop-first water-demand / soil-response coupling."
+    },
+    {
+      "id": "WOFOST81-LOGIC-AMEND01",
+      "status": "ORDERING_CONTRACT_REQUIRES_CHARACTERISATION",
+      "confidence": "high",
+      "component": "SNOMIN amendment events",
+      "summary": "Timed amendment signals are dispatched before current-day calc_rates; SNOMIN collects amendment placeholders in that calc_rates and integrates them on the next Engine integration call. Calendar labels therefore describe the rate day, while state incorporation occurs at the following integration boundary."
     }
   ],
   "e2e_fixture": {
