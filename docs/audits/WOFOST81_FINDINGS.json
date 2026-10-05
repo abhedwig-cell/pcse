@@ -298,6 +298,34 @@
         "93c13cf642feb683c2c0bc24cb8013411e8167dd",
         "3f02fb28aaa67e56e15e2a9132ed04c620972d43"
       ]
+    },
+    {
+      "id": "WOFOST81-LOGIC-SNBUF01",
+      "status": "REVIEWED_NO_OVERWRITE_AFTER_REPAIR",
+      "confidence": "high",
+      "component": "SNOMIN amendment buffers",
+      "summary": "Organic amendment buffers concatenate each event and mineral amendment buffers now add after AMEND02. calc_rates snapshots all buffers into rates and resets placeholders immediately, giving one-rate-day ownership. No further same-day overwrite found."
+    },
+    {
+      "id": "WOFOST81-LOGIC-REALLOC02",
+      "status": "REVIEWED_INSTANCE_LIFETIME_SAFE",
+      "confidence": "high",
+      "component": "WOFOST81 reallocation quota caches",
+      "summary": "_WLV_REALLOC/_WST_REALLOC are per-crop SimulationObject trait state and a new crop gets a new object after deletion. No cross-crop leakage of reallocation quota was established."
+    },
+    {
+      "id": "WOFOST81-LOGIC-CUM01",
+      "status": "REVIEWED_MIXED_COUNTER_CONTRACT",
+      "confidence": "high",
+      "component": "cumulative counters",
+      "summary": "Crop cumulative GASST/MREST/CTRAT and soil cumulative water/N counters integrate realized previous-day rates. Daily instantaneous rate output remains prospective. No double accumulation was established, but comparing cumulative increments to same-row rates requires a one-boundary shift."
+    },
+    {
+      "id": "WOFOST81-LOGIC-SURF01",
+      "status": "REVIEWED_TRANSACTIONAL_SURFACE_WATER",
+      "confidence": "medium",
+      "component": "MLWB surface water/infiltration",
+      "summary": "Rain, irrigation, surface storage, infiltration, evaporation and runoff are composed in one MLWB rate calculation and committed together in integrate. No additional overwrite/double-claim defect established in source audit."
     }
   ],
   "e2e_fixture": {
