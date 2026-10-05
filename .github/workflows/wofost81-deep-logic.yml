@@ -1,9 +1,6 @@
 name: WOFOST81 Deep Logic Qualification
 
 on:
-  push:
-    branches:
-      - audit/wofost81-deep-logic
   workflow_dispatch:
 
 jobs:
