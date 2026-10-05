@@ -160,6 +160,34 @@
       "confidence": "high",
       "component": "SNOMIN amendment events",
       "summary": "Timed amendment signals are dispatched before current-day calc_rates; SNOMIN collects amendment placeholders in that calc_rates and integrates them on the next Engine integration call. Calendar labels therefore describe the rate day, while state incorporation occurs at the following integration boundary."
+    },
+    {
+      "id": "WOFOST81-LOGIC-FINAL01",
+      "status": "CONFIRMED_FINAL_DAY_SEMANTICS",
+      "confidence": "very_high",
+      "component": "Timer/Engine",
+      "summary": "On END_DATE the Timer emits OUTPUT and TERMINATE before Engine integrates that date. Engine then integrates the previous day's rates, processes management and current-day rates, saves output, and terminates. Thus final-day output is post-integration but current-day rates are not subsequently integrated. END_DATE is an integration boundary, not a fully executed additional rate day."
+    },
+    {
+      "id": "WOFOST81-LOGIC-FINISH01",
+      "status": "STRUCTURAL_DEFERRED_FINALIZATION",
+      "confidence": "very_high",
+      "component": "Engine crop finish",
+      "summary": "CROP_FINISH is deferred until after crop and soil calc_rates. A crop reaching maturity during integration can therefore still execute one final current-day crop calc_rates before finalize/delete; those newly calculated rates are not integrated when the crop is deleted. Final states remain correct for the integrated transition, but final-day rates should not be interpreted as realized fluxes."
+    },
+    {
+      "id": "WOFOST81-LOGIC-SE02",
+      "status": "QUALIFICATION_TEST_ADDED",
+      "confidence": "high",
+      "component": "StateEventsDispatcher",
+      "summary": "A single daily state jump may cross multiple configured thresholds. Dispatcher evaluates thresholds independently, so all crossed rising thresholds should fire once; adversarial test added to guard this behavior."
+    },
+    {
+      "id": "WOFOST81-LOGIC-ROT01",
+      "status": "REVIEWED_NO_DEFECT_FOUND",
+      "confidence": "medium",
+      "component": "crop rotation/deletion",
+      "summary": "Engine deletes crop state/rate registrations recursively and forces garbage collection because signal subscriptions otherwise retain objects. New crop start is rejected while a crop object remains. No additional rotation ownership defect was established in this tranche."
     }
   ],
   "e2e_fixture": {
