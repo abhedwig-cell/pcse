@@ -8,6 +8,8 @@ from pcse.agromanager import CropCalendar, StateEventsDispatcher
 from pcse.base import VariableKiosk
 from pcse.soil.multilayer_waterbalance import WaterBalanceLayered
 from pcse.crop.nutrients.n_demand_uptake import N_Demand_Uptake
+from pcse.crop.wofost81 import Wofost81
+from pcse import exceptions as exc
 from pcse.base.dispatcher import dispatcher
 
 
@@ -137,6 +139,17 @@ class TestFallowRootZoneOwnership(unittest.TestCase):
         wb.rooted_layer_needs_reset = False
         wb._on_CROP_FINISH()
         self.assertTrue(wb.rooted_layer_needs_reset)
+
+
+
+class TestRepairOracles(unittest.TestCase):
+
+    def test_biomass_reallocation_is_donor_limited(self):
+        self.assertEqual(Wofost81._limit_reallocation_request(30., 20., 5.), 15.)
+        self.assertEqual(Wofost81._limit_reallocation_request(30., 20., 20.), 0.)
+
+    def test_n_parameter_validation_exception_is_importable(self):
+        self.assertTrue(issubclass(exc.PCSEError, Exception))
 
 
 if __name__ == "__main__":
