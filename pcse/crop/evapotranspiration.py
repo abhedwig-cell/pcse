@@ -536,6 +536,10 @@ class EvapotranspirationCO2Layered(SimulationObject):
         self.soil_profile = parvalues["soil_profile"]
         self.kiosk = kiosk
         self.params = self.Parameters(parvalues)
+        for name in ("IAIRDU", "IOX"):
+            value = getattr(self.params, name)
+            if value not in (0., 1.):
+                raise exc.PCSEError("%s must be either 0 or 1." % name)
         self.rates = self.RateVariables(kiosk, publish=["EVWMX","EVSMX", "TRAMX","TRA","TRALY", "RFTRA"])
         self.states = self.StateVariables(kiosk, IDOST=-999, IDWST=-999)
 
