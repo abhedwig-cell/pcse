@@ -290,10 +290,14 @@
     },
     {
       "id": "WOFOST81-LOGIC-ROT02",
-      "status": "OPEN_ROTATION_SOIL_STATE_ASSUMPTION",
-      "confidence": "high",
+      "status": "CONFIRMED_DEFECT_REPAIR_IMPLEMENTED_LOCAL_QUALIFICATION_PENDING",
+      "confidence": "very_high",
       "component": "MLWB crop rotation",
-      "summary": "MLWB receives crop_finish but intentionally does nothing; root-zone layer weights remain at the finished crop's RD between crops until the next crop_start setup resets rooting status to default RD. Soil water states continue, but root-zone summary variables during fallow can retain the previous crop geometry. Requires interpretation/rotation test before deciding whether this is intended."
+      "summary": "After crop_finish and crop deletion, MLWB baseline retains the finished crop's rooting weights and _RDold while RD disappears from the kiosk. Fallow root-zone summaries can therefore remain based on the previous crop geometry until another crop starts. Repair marks root geometry for reset and rebuilds summary weights at default fallow RD on the next integration.",
+      "repair_commits": [
+        "93c13cf642feb683c2c0bc24cb8013411e8167dd",
+        "3f02fb28aaa67e56e15e2a9132ed04c620972d43"
+      ]
     }
   ],
   "e2e_fixture": {
