@@ -3,7 +3,7 @@
 This deliberately patches PCSE composition within an isolated test process.
 It is not an application API, nor a qualified SWAP interface.
 """
-import datetime
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 from pcse.base import ParameterProvider, SimulationObject, RatesTemplate
@@ -11,7 +11,7 @@ from pcse.traitlets import Float
 from pcse.decorators import prepare_rates
 from pcse.soil.soil_wrappers import SoilModuleWrapper_PP
 from pcse.crop import wofost81
-from pcse.models import Wofost81_PP
+from pcse.engine import Engine
 from pcse.tests.test_wofost81_snomin_e2e import _crop_parameters, _soil_and_site, _weather, _agro
 
 class ExternalET(SimulationObject):
@@ -39,21 +39,11 @@ class ExternalReceiptSmoke(unittest.TestCase):
         crop=_crop_parameters()
         soil,site=_soil_and_site()
         params=ParameterProvider(cropdata=crop,soildata=soil,sitedata=site)
-        with patch.object(wofost81,"Evapotranspiration",ExternalET), patch(
-                "pcse.soil.soil_wrappers.SoilModuleWrapper_PP",ExternalSoilWaterOff):
-            # Engine configuration resolved by import path in the config loader:
-            # override the class attribute used by configuration at runtime.
-            from pcse import soil
-            from pcse.soil import soil_wrappers
-            import pcse.conf.Wofost81_PP as config
-            old=config.SOIL
-            config.SOIL=ExternalSoilWaterOff
-            try:
-                engine=Wofost81_PP(params,_weather(),_agro())
-                engine.run(days=10)
-                rows=engine.get_output()
-            finally:
-                config.SOIL=old
+        with patch.object(wofost81, "Evapotranspiration", ExternalET):
+            engine=Engine(params,_weather(),_agro(),
+                          config=Path(__file__).with_name("data_wofost81_external_soil_off.conf"))
+            engine.run(days=10)
+            rows=engine.get_output()
         self.assertGreater(len(rows),0)
         self.assertIsInstance(engine.soil,ExternalSoilWaterOff)
         self.assertIsNone(engine.soil.waterbalance)
