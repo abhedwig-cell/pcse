@@ -62,7 +62,7 @@ def worker(mode,folder,split_days=30):
         # condition instead of restoring hidden PCSE state.
         expected=json.loads((folder/"first.json").read_text())
         engine=build_engine()
-        engine.run(days=30)
+        engine.run(days=split_days)
         if record_projection(engine.get_output())!=expected:
             raise RuntimeError("replayed crop diverged before resume")
         engine.run(days=60-split_days)
