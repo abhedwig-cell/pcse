@@ -156,7 +156,7 @@ class ActualEngineDirectContinuation(unittest.TestCase):
         baseline=build_engine()
         baseline.run(days=60)
         expected=record_projection(baseline.get_output())
-        for split in (30,45):
+        for split in (10,30,45):
             with self.subTest(split=split),tempfile.TemporaryDirectory() as folder:
                 command=[sys.executable,"-m","pcse.tests.test_wofost81_ext01_direct_state_restore","--worker"]
                 for action in ("save","resume"):
