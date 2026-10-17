@@ -24,6 +24,9 @@ jobs:
       - name: Reproduce historical WOFOST72 PGASS YAML regression
         run: python -m unittest -v tests.test_assimilation_yaml_regression
 
+      - name: Probe WOFOST81 crop-N zero reachability
+        run: python -m unittest -v pcse.tests.test_wofost81_nzero_reachability
+
       - name: Run legacy WOFOST full-model regression envelope
         run: |
           python - <<'PY'
