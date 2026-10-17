@@ -94,17 +94,35 @@ def restore(engine,payload):
     return engine
 
 class ActualEngineDirectContinuation(unittest.TestCase):
-    def test_direct_resume_after_30_without_replay(self):
+    def test_direct_resume_multiple_boundaries_without_replay(self):
+        for split in (10,30,45):
+            with self.subTest(split=split):
+                source=build_engine()
+                source.run(days=split)
+                payload=json.loads(json.dumps(snapshot(source),allow_nan=False))
+                fresh=build_engine()
+                self.assertEqual(fresh.timer.day_counter,0)
+                restore(fresh,payload)
+                self.assertEqual(fresh.timer.day_counter,split)
+                source.run(days=60-split)
+                fresh.run(days=60-split)
+                self.assertEqual(record_projection(fresh.get_output()),
+                                 record_projection(source.get_output()))
+                self.assertEqual(internal_crop_projection(fresh),
+                                 internal_crop_projection(source))
+                print("EXT01_DIRECT_RESTART_SPLIT_EQUAL",split,61)
+
+    def test_reject_incompatible_or_foreign_state_before_continuation(self):
         source=build_engine()
         source.run(days=30)
         payload=json.loads(json.dumps(snapshot(source),allow_nan=False))
-        fresh=build_engine()
-        self.assertEqual(fresh.timer.day_counter,0)
-        restore(fresh,payload)
-        self.assertEqual(fresh.timer.day_counter,30)
-        source.run(days=30)
-        fresh.run(days=30)
-        self.assertEqual(record_projection(fresh.get_output()),record_projection(source.get_output()))
-        self.assertEqual(internal_crop_projection(fresh),internal_crop_projection(source))
-        print("EXT01_DIRECT_RESTART_30_DAY_EQUAL 61")
+        wrong=json.loads(json.dumps(payload))
+        wrong["schema"]="unknown"
+        with self.assertRaises(ValueError):
+            restore(build_engine(),wrong)
+        wrong=json.loads(json.dumps(payload))
+        wrong["published_kiosk"]["foreign_crop_state"]=1
+        with self.assertRaises(ValueError):
+            restore(build_engine(),wrong)
+        print("EXT01_DIRECT_RESTART_FOREIGN_STATE_REJECTED")
 if __name__=="__main__": unittest.main()
