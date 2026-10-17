@@ -51,9 +51,11 @@ class ExternalReceiptSmoke(unittest.TestCase):
         with patch.object(wofost81, "Evapotranspiration", ExternalET):
             engine=Engine(params,_weather(),_agro(),
                           config=Path(__file__).with_name("data_wofost81_external_soil_off.conf"))
-            engine.run(days=10)
+            engine.run(days=60)
             rows=engine.get_output()
-        self.assertGreater(len(rows),0)
+        self.assertGreater(len(rows),40)
+        self.assertTrue(any(r.get("LAI") is not None and r["LAI"] > 0 for r in rows))
+        self.assertTrue(any(r.get("TAGP") is not None and r["TAGP"] > 0 for r in rows))
         self.assertIsInstance(engine.soil,ExternalSoilWaterOff)
         self.assertIsNone(engine.soil.waterbalance)
         self.assertTrue(all(r.get("TAGP") is None or r["TAGP"]>=0 for r in rows))
