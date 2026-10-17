@@ -30,7 +30,7 @@ def scalar(v):
     return float(v) if v is not None else None
 out={'schema':request['schema'],'event':request['event'],
      'rows':[{k:scalar(r.get(k)) for k in ('DVS','LAI','TAGP','NuptakeTotal')} | {'day':scalar(r['day'])} for r in rows]}
-json.dump(out,sys.stdout,allow_nan=False)
+sys.stdout.write('EXTERNAL_DAY_JSON:'+json.dumps(out,allow_nan=False)+'\\n')
 """
 
 
@@ -51,7 +51,7 @@ class RealPCSEBoundary(unittest.TestCase):
         for unused in range(2):
             p = subprocess.run([sys.executable, "-c", WORKER], input=input_bytes,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-            response = json.loads(p.stdout)
+            response = json.loads(p.stdout.decode().split('EXTERNAL_DAY_JSON:')[-1].strip())
             self.assertEqual(response['event'], event)
             outputs.append(response)
         self.assertEqual(outputs[0], outputs[1])
