@@ -59,3 +59,34 @@ class ExternalReceiptSmoke(unittest.TestCase):
         self.assertIsInstance(engine.soil,ExternalSoilWaterOff)
         self.assertIsNone(engine.soil.waterbalance)
         self.assertTrue(all(r.get("TAGP") is None or r["TAGP"]>=0 for r in rows))
+
+
+    def test_real_swap5_receipt_replayed_as_crop_only_input(self):
+        # This exact value originates in successful SWAP5 physically accepted
+        # ROOTED weather fixture run 39027378775 (case j=1,d=2).
+        # SWAP event dates/meteorology differ from PCSE 2010 wheat fixture:
+        # portable numeric receipt only, NOT coupled scientific equivalence.
+        actual = 1.0370706377336118e-3
+        potential = 1.0370706377336118e-3
+        self.assertGreater(potential, 0.0)
+        self.assertLessEqual(actual, potential)
+        observed = []
+        def receipt_call(self, day, drv):
+            self.rates.TRA = actual
+            self.rates.TRAMX = potential
+            self.rates.RFTRA = actual / potential
+            observed.append((day, self.rates.TRA, self.rates.TRAMX, self.rates.RFTRA))
+            return self.rates.TRA, self.rates.TRAMX
+        soil,site = _soil_and_site()
+        params=ParameterProvider(cropdata=_crop_parameters(),soildata=soil,sitedata=site)
+        with patch.object(ExternalET,"__call__",receipt_call):
+            with patch.object(wofost81,"Evapotranspiration",ExternalET):
+                engine=Engine(params,_weather(),_agro(),
+                              config=Path(__file__).with_name("data_wofost81_external_soil_off.conf"))
+                engine.run(days=60)
+                rows=engine.get_output()
+        self.assertGreater(len(observed),50)
+        self.assertIsNone(engine.soil.waterbalance)
+        self.assertTrue(all(t==actual and p==potential and f==1.0 for _,t,p,f in observed))
+        self.assertTrue(any(row.get("TAGP") is not None and row["TAGP"]>0 for row in rows))
+        print("SWAP5_ACCEPTED_RECEIPT_REPLAY", actual, potential, len(observed))
