@@ -1,0 +1,130 @@
+"""F-WOF-EXT01 real-PCSE crop transaction in a detached worker.
+
+The physical flux numbers remain synthetic in this test. This tests actual PCSE
+candidate state, NOT SWAP5's production accepted hydrology/event publication.
+"""
+import copy
+import hashlib
+import json
+import math
+import subprocess
+import sys
+import unittest
+from pcse.tests.test_wofost81_ext01_process_restart import build_engine, record_projection
+from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot, restore
+
+SCHEMA="F-WOF-EXT01/PCSE-TRANSACTION-RESEARCH/1"
+
+def canon(o):
+    return json.dumps(o,allow_nan=False,sort_keys=True,separators=(",",":"))
+
+def digest(o):
+    return hashlib.sha256(canon(o).encode()).hexdigest()
+
+def accepted_event(day, hydro_provenance="synthetic-barley-research"):
+    return dict(event_id=f"crop-day-{day:03d}",day=day,
+        hydro_provenance=hydro_provenance,actual_transpiration_cm_day=.15,
+        potential_transpiration_cm_day=.30,rftra=.5)
+
+def validate_event(e,prior):
+    if set(e)!={"event_id","day","hydro_provenance","actual_transpiration_cm_day",
+               "potential_transpiration_cm_day","rftra"}:
+        raise ValueError("event contract")
+    if e["day"]!=prior["timer_counter"]+1 or e["event_id"]!=f"crop-day-{e['day']:03d}":
+        raise ValueError("out of order event")
+    a,p,r=(e[k] for k in ("actual_transpiration_cm_day","potential_transpiration_cm_day","rftra"))
+    if any(not isinstance(x,(int,float)) or isinstance(x,bool) or not math.isfinite(x) for x in (a,p,r)):
+        raise ValueError("invalid flux")
+    if not (p>0 and 0<=a<=p and 0<=r<=1) or abs(a/p-r)>1e-12:
+        raise ValueError("flux inconsistency")
+    if not e["hydro_provenance"]: raise ValueError("missing provenance")
+
+def candidate_worker(request):
+    if request.get("schema")!=SCHEMA: raise ValueError("schema")
+    e=request["event"]
+    prior=request["committed"]
+    validate_event(e,prior)
+    model=build_engine()
+    restore(model,prior)
+    model.run(days=1)
+    next_state=snapshot(model)
+    if next_state["timer_counter"]!=e["day"]: raise AssertionError("bad phase")
+    return {"schema":SCHEMA,"event_id":e["event_id"],"event_digest":digest(e),
+            "prior_digest":digest(prior),"candidate":next_state}
+
+def external_prepare(event,committed):
+    request={"schema":SCHEMA,"event":event,"committed":committed}
+    proc=subprocess.run([sys.executable,"-m",
+         "pcse.tests.test_wofost81_ext01_real_transaction","--worker"],
+         input=canon(request),text=True,capture_output=True)
+    if proc.returncode: raise RuntimeError(proc.stderr[-2500:])
+    return json.loads(proc.stdout.split("EXT01_CANDIDATE:")[-1].strip())
+
+class CropTransaction:
+    def __init__(self,committed):
+        self.committed=copy.deepcopy(committed)
+        self.receipts={}
+    def prepare(self,event):
+        if event["event_id"] in self.receipts: raise ValueError("duplicate event")
+        before=digest(self.committed)
+        result=external_prepare(event,self.committed)
+        assert digest(self.committed)==before
+        return result
+    def commit(self,event,candidate):
+        ident=event["event_id"]
+        if ident in self.receipts: raise ValueError("duplicate event")
+        if (candidate["schema"]!=SCHEMA or candidate["event_id"]!=ident or
+            candidate["event_digest"]!=digest(event) or
+            candidate["prior_digest"]!=digest(self.committed)):
+            raise ValueError("stale or foreign candidate")
+        if candidate["candidate"]["timer_counter"]!=event["day"]:
+            raise ValueError("wrong candidate day")
+        self.committed=copy.deepcopy(candidate["candidate"])
+        self.receipts[ident]=candidate["event_digest"]
+
+class RealCropTransaction(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        original=build_engine()
+        original.run(days=30)
+        cls.day30=snapshot(original)
+        original.run(days=3)
+        cls.expected=record_projection(original.get_output())
+    def test_reject_retry_commit_restart_three_real_crop_days(self):
+        tx=CropTransaction(self.day30)
+        for day in (31,32,33):
+            e=accepted_event(day)
+            before=digest(tx.committed)
+            a=tx.prepare(e)
+            b=tx.prepare(e)
+            self.assertEqual(digest(a),digest(b))
+            self.assertEqual(digest(tx.committed),before)
+            with self.assertRaises(ValueError):
+                tx.commit({**e,"hydro_provenance":"foreign"},a)
+            self.assertEqual(digest(tx.committed),before)
+            tx.commit(e,b)
+            with self.assertRaises(ValueError): tx.prepare(e)
+            with self.assertRaises(ValueError): tx.commit(e,b)
+        self.assertEqual(tx.committed["output"],self.expected)
+        self.assertEqual(tx.committed["timer_counter"],33)
+        print("EXT01_REAL_PCSE_TRANSACTION_3_DAYS_PASS")
+    def test_invalid_flux_and_failed_worker_do_not_commit(self):
+        tx=CropTransaction(self.day30)
+        before=digest(tx.committed)
+        for change in ({"rftra":.9},{"actual_transpiration_cm_day":.4},
+                       {"potential_transpiration_cm_day":0},{"day":32}):
+            with self.subTest(change=change),self.assertRaises(RuntimeError):
+                tx.prepare({**accepted_event(31),**change})
+            self.assertEqual(digest(tx.committed),before)
+        print("EXT01_REAL_PCSE_BAD_EVENT_UNCHANGED_PASS")
+
+if __name__=="__main__":
+    if len(sys.argv)==2 and sys.argv[1]=="--worker":
+        try:
+            request=json.load(sys.stdin)
+            print("EXT01_CANDIDATE:"+canon(candidate_worker(request)))
+        except Exception as exc:
+            print(f"worker failure: {type(exc).__name__}: {exc}",file=sys.stderr)
+            sys.exit(2)
+    else:
+        unittest.main()
