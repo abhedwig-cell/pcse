@@ -1,0 +1,80 @@
+{
+  "status": "RELEASE_CANDIDATE_NOT_ADMITTED",
+  "date": "2026-10-17",
+  "package_version": "6.0.14rc1+wofost81repair",
+  "candidate_code_commit": "7bd331ce617fcd0cd484ae2b2e4bd0f37e5f5e04",
+  "candidate_code_tree": "ed47e3cfba06c002cce625eeb58f55606df0bb32",
+  "local_equivalent_commit": "1c9073a7eb1642cb135f91831dae192435d2718a",
+  "python": "3.12.14",
+  "dependencies": {
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "traitlets-pcse": "5.0.0.dev0",
+    "PyDispatcher": "2.0.7",
+    "sphinx": "9.1.0",
+    "sphinx-rtd-theme": "3.1.0",
+    "build": "1.6.1"
+  },
+  "test_environment": "/tmp/wofost-rc-install-i0Zm6G",
+  "test_results": {
+    "source_qualification": {
+      "passed": 52,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 17.876,
+      "stdout_sha256": "2cc92f4b9097b27e61fb3af66641c9ebf8811b03454b690c72a7a64b619e365a"
+    },
+    "installed_wheel": {
+      "passed": 52,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 19.136,
+      "stdout_sha256": "228d2a7b64f003c69303a603e4a8494c3b6f00707476c78525fbaffd97886efb"
+    },
+    "installed_sdist": {
+      "passed": 7,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.814,
+      "stdout_sha256": "08123b61144440c5c8cbf59b740a498fe3648a28cfe1f1b8a57b7a2a0709bf2d"
+    }
+  },
+  "documentation": {
+    "command": "PYTHONWARNINGS=ignore python -m sphinx -W --keep-going -E -b html doc /tmp/wofost-rc-html",
+    "exit_code": 0,
+    "warnings": 0,
+    "errors": 0,
+    "stdout_sha256": "181a5319b4653da9d486564324f11cd386fffe452b677b1e3292be609a38c50c",
+    "official_sites_updated": false
+  },
+  "artifacts": {
+    "pcse-6.0.14rc1+wofost81repair-py3-none-any.whl": {
+      "bytes": 931832,
+      "sha256": "b1671f0943ea49f611c63cf8072e91e8acbc7301c407d729786cf602bf4893d4"
+    },
+    "pcse-6.0.14rc1+wofost81repair.tar.gz": {
+      "bytes": 1346446,
+      "sha256": "b85cb23301f27dfebc7b2ed5067853d09b897357aa257fe98dbe21b51eac4844"
+    },
+    "WOFOST81_repair_rc1_documentation.zip": {
+      "bytes": 9292985,
+      "sha256": "930c531a178ecdee6bbfa507fa8e6f572a638f7023ceb8b2ae5685384a3683e8"
+    }
+  },
+  "new_actions_runs": 0,
+  "production_ast_comparison": "Four changed process modules are identical to the qualified base after docstring removal. No numerical process changes in this release-packaging step.",
+  "inherited_full_yaml_result": {
+    "passed": 392,
+    "failed": 64,
+    "new_run_this_step": false,
+    "evidence": "WOFOST81_LOCAL_QUALIFICATION_RESULTS.json"
+  },
+  "admission": {
+    "maintainer": "PENDING",
+    "official_version": "PENDING",
+    "swap": "BLOCKED_UNTIL_SOURCE_ADMISSION"
+  }
+}
