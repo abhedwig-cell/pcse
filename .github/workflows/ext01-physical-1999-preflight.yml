@@ -1,0 +1,19 @@
+name: EXT01 authentic 1999 receipt preflight
+on:
+  push:
+    branches: [research/wofost81-external-day-probe-20261017]
+    paths:
+      - 'pcse/tests/test_wofost81_ext01_physical_1999_identity.py'
+      - 'pcse/tests/test_data/ext01_swap5_native_accepted_witness_v3.json'
+      - '.github/workflows/ext01-physical-1999-preflight.yml'
+  workflow_dispatch:
+jobs:
+  receipt-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest -v pcse.tests.test_wofost81_ext01_physical_1999_identity
