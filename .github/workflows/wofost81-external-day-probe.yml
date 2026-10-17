@@ -12,6 +12,7 @@ on:
       - 'pcse/tests/test_wofost81_ext01_state_codec_preflight.py'
       - 'pcse/tests/test_wofost81_ext01_direct_restart_inventory.py'
       - 'pcse/tests/test_wofost81_ext01_direct_state_restore.py'
+      - 'pcse/tests/test_wofost81_ext01_real_transaction.py'
       - 'pcse/tests/export_ext01_fortran_input.py'
       - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
       - '.github/workflows/wofost81-external-day-probe.yml'
@@ -53,6 +54,8 @@ jobs:
         run: python -m unittest -v pcse.tests.test_wofost81_ext01_direct_restart_inventory
       - name: Test real experimental engine continuation without replay
         run: python -m unittest -v pcse.tests.test_wofost81_ext01_direct_state_restore
+      - name: Qualify actual PCSE detached crop transaction boundary
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_real_transaction
       - name: Export complete aligned-source input package for SWAP5 Fortran research
         run: |
           python -m pcse.tests.export_ext01_fortran_input ext01-fortran-input
