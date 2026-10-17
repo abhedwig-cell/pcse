@@ -29,9 +29,9 @@ Like so many other software packages, PCSE was developed to facilitate my own re
 that was more easy to work with, more interactive and more flexible while still implementing
 the sound computational approach of FST. For this reason PCSE was developed in Python
 which has become an important programming language for scientific purposes.
-PCSE runs on Python 3.6+ but can adapted to run on lower python
-versions. For example, we run PCSE in the .NET framework on IronPython 2.7 by stripping PCSE down
-to the core system.
+This source distribution requires Python 3.9 or later, as specified in its
+package metadata. Its WOFOST 8.1 repair candidate is described in
+:doc:`wofost81_repairs`; it is not an officially admitted new WOFOST version.
 
 Traditionally, crop simulation models in Wageningen have been provided including the
 full source code. PCSE is no exception and its source code is open and licensed under the
@@ -46,6 +46,7 @@ What's new
    :maxdepth: 2
 
    whatsnew.rst
+   wofost81_repairs.rst
 
 Crop models Available in PCSE
 -----------------------------

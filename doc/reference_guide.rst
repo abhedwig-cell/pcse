@@ -581,6 +581,15 @@ crosses zero. The `zero_condition` defines how this crossing should take place. 
 Note that when multiple events are connected to the same state value, the order in which they trigger is
 undetermined.
 
+In the WOFOST 8.1 repair candidate, exact equality on the first observation
+dispatches the event for all three zero conditions. Remaining at equality on
+the next observation does not by itself repeat the event. A daily jump may
+cross and dispatch multiple thresholds. Layered-water-balance irrigation
+events and SNOMIN mineral-N amendments accumulate within the same rate day
+instead of letting the final event overwrite earlier amounts. These changes
+do not define a general ordering for unrelated events. See
+:doc:`wofost81_repairs` for the rate/state timing and input-validation contracts.
+
 For a detailed description of a state events see the code documentation on the StateEventsDispatcher
 in the section on :ref:`Agromanagement <AgromanagementCode>`.
 

@@ -164,6 +164,14 @@ class DVS_Partitioning_N(SimulationObject):
     """Class for assimilate partitioning based on development stage (`DVS`)
     with influence of N stress.
 
+    .. warning::
+
+        The inherited description below is disputed (audit PART-01). The
+        executable root-allocation adjustment uses RFTRA (water stress), not
+        the described NPART/NNI response. The repair candidate preserves that
+        implementation pending a model-owner decision. The description below
+        is not an established executable nitrogen-stress contract.
+
     `DVS_Partitioning_NPK` calculates the partitioning of the assimilates to roots,
     stems, leaves and storage organs using fixed partitioning tables as a
     function of crop development stage. The only different with the normal

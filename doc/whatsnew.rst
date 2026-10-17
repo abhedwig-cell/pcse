@@ -4,6 +4,20 @@
 An overview of new features and fixes
 #####################################
 
+WOFOST 8.1 repair candidate (PCSE 6.0.14rc1+wofost81repair)
+*********************************************************
+
+This fork packages the qualified WOFOST 8.1 technical repairs as an installable
+candidate, not an officially admitted WOFOST 8.1.1 release. Corrections concern
+SNOMIN finite N pools, crop-N balance timing, donor-limited biomass/N transfers,
+management-event composition, crop-finish metadata, fallow root-zone geometry
+and input validation. Model entrypoints and the crop-parameter version remain
+8.1. Existing model-owner questions are not silently resolved.
+
+Read :doc:`wofost81_repairs` before updating existing runs: corrected extreme
+or coincident-event cases can produce different outputs, and invalid
+configurations that were formerly accepted can now raise ``PCSEError``.
+
 **********************
 What's new in PCSE 6.0
 **********************
@@ -12,8 +26,8 @@ PCSE 6.0 has a number of breaking changes compared to the 5.5 release.
 
 First of all, WOFOST 7.3 and 8.1 are released with PCSE 6.0. WOFOST 7.3 includes the atmospheric |CO2| response
 and biomass reallocation. WOFOST 8.1 provides the full crop N dynamics. Moreover, this release also includes a
-new multi-layer waterbalance and a new Carbon/Nitrogen balance called `SNOMIN` (Soil Nitrogen module for Mineral and
-Inorganic Nitrogen). Furthermore, WOFOST 8.0-beta has been deprecated in the PCSE 6.0 release. This also implies dropping
+new multi-layer waterbalance and a new Carbon/Nitrogen balance called `SNOMIN` (Soil Nitrogen module for Organic and
+Mineral Nitrogen). Furthermore, WOFOST 8.0-beta has been deprecated in the PCSE 6.0 release. This also implies dropping
 support for the simulation of P/K limitations on crop growth.
 
 WOFOST 7.3 and WOFOST 8.1 are coupled to the new SNOMIN carbon/nitrogen balance and the new multi-layer

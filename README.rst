@@ -1,6 +1,26 @@
 Python Crop Simulation Environment - PCSE
 =========================================
 
+WOFOST 8.1 repair candidate
+---------------------------
+
+This branch is an installable fork candidate: PCSE
+``6.0.14rc1+wofost81repair``. It contains the locally qualified WOFOST 8.1
+technical repairs. It is **not an official WOFOST 8.1.1/8.2 release**, and is
+not yet admitted for migration into SWAP. Existing ``Wofost81_*`` model classes
+and the 8.1 crop-parameter schema are retained.
+
+Install in a separate environment and run the packaged qualification::
+
+    python -m pip install "git+https://github.com/abhedwig-cell/pcse.git@release/wofost81-repairs-rc1-20261017"
+    python -m pcse.tests.qualification
+
+See ``doc/wofost81_repairs.rst`` for the repairs, daily timing contracts,
+compatibility changes and admission limits. ``pcse/release_info.json`` contains
+the release identity and pending admission gates. Source qualification and
+release evidence are in ``docs/audits``. Official upstream PCSE remains at
+https://github.com/ajwdewit/pcse.
+
 PCSE is a framework developed for implementing crop simulation models developed in
 Wageningen. Many of the Wageningen crop simulation models were originally developed
 in FORTRAN77 or using the FORTRAN Simulation Translator (`FST`_). Although this

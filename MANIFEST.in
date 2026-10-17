@@ -1,4 +1,9 @@
 # SQL scripts for demo database
+include pcse/release_info.json
+include pcse/tests/test_data/wofost81_authority_wheat.yaml
+include pcse/tests/test_data/wofost81_qualification_weather.yaml
+recursive-include doc *.rst *.txt *.py *.png *.jpg *.svg *.css *.yml
+recursive-include docs/audits *.md *.json
 include pcse/tests/test_data/pcse_dump.sql
 
 # Model configuration files

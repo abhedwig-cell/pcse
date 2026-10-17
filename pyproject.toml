@@ -7,7 +7,7 @@ packages = ["pcse", "pcse.conf", "pcse.base", "pcse.crop", "pcse.crop.nutrients"
 
 [project]
 name = "pcse"
-version = "6.0.13"
+version = "6.0.14rc1+wofost81repair"
 authors = [
   { name="Allard de Wit", email="allard.dewit@wur.nl" },
   { name="Herman Berghuijs", email="herman.berghuijs@wur.nl" },
@@ -35,7 +35,7 @@ license-files = [
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
@@ -44,7 +44,11 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ajwdewit/pcse"
+Homepage = "https://github.com/abhedwig-cell/pcse"
 documentation = "https://pcse.readthedocs.io"
-repository = "https://github.com/ajwdewit/pcse.git"
+repository = "https://github.com/abhedwig-cell/pcse.git"
+
+[project.optional-dependencies]
+docs = ["sphinx>=8.0", "sphinx-rtd-theme>=3.0"]
+release = ["build>=1.2"]
 

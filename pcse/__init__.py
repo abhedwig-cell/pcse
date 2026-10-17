@@ -28,8 +28,10 @@ See Also
 from __future__ import print_function
 __author__ = "Allard de Wit <allard.dewit@wur.nl>"
 __license__ = "European Union Public License"
-__stable__ = True
-__version__ = "6.0.13"
+__stable__ = False
+__version__ = "6.0.14rc1+wofost81repair"
+# Implementation revision, not a new crop-parameter schema or official model version.
+__wofost81_revision__ = "repair-rc1"
 
 
 import sys, os

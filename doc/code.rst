@@ -84,6 +84,10 @@ The Timer
 Soil process modules
 ====================
 
+For the repair candidate's finite-pool, donor-ownership and daily event
+contracts, see :doc:`wofost81_repairs`. These contracts supplement the component
+API descriptions below; they do not introduce a different model formulation.
+
 Water balance modules
 ---------------------
 
@@ -116,7 +120,7 @@ Nitrogen and Carbon modules
 PCSE contains two modules for nitrogen and carbon in the soil:
     1. The simple N_Soil_Dynamics module which only simulates N availability as a pool of available N
        without any dynamic processes like leach, volatilization, etc.
-    2. The SNOMIN module (Soil Nitrogen module for Mineral and Inorganic Nitrogen) which is a layered soil
+    2. The SNOMIN module (Soil Nitrogen module for Organic and Mineral Nitrogen) which is a layered soil
        carbon/nitrogen balance that also requires the layered soil water balance. It includes the full
        N dynamics in the soil as well as the impact of organic matter and organic amendments (manure) on the
        availability of nitrogen in the soil.
@@ -142,6 +146,16 @@ Partitioning
 ------------
 
 .. autoclass:: pcse.crop.partitioning.DVS_Partitioning
+
+.. warning::
+
+   PART-01 remains unresolved in the repair candidate. The description of
+   ``DVS_Partitioning_N`` refers to N stress, whereas the executable
+   root-allocation adjustment uses RFTRA. This is not an admitted N-stress
+   formulation change. The owner must resolve the discrepancy before a new
+   scientific claim or behavioural repair is introduced.
+
+.. autoclass:: pcse.crop.partitioning.DVS_Partitioning_N
 
 
 |CO2| Assimilation

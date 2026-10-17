@@ -2,6 +2,12 @@
 Models available in PCSE
 ========================
 
+The WOFOST 8.1 repair candidate retains the ``Wofost81_*`` entrypoints and
+``__cropmodelversion__ = "8.1"`` so that existing crop-parameter selection keeps
+working. Identify the implementation with the PCSE package version and
+``pcse.__wofost81_revision__``, not the class name alone. See
+:doc:`wofost81_repairs` for changes, qualification limits and admission status.
+
 The PCSE package implements several crop models that were developed in Wageningen. These models are:
 
     - The WOFOST cropping system model for simulating growth and development of arable crops.

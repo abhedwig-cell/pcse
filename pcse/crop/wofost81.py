@@ -26,7 +26,12 @@ from .nutrients.n_stress import N_Stress as N_Stress
 class Wofost81(SimulationObject):
     """Top level object organizing the different components of the WOFOST crop
     simulation. EvapotranspirationCO2Layered is used as the Evapotranspiration
-    to allow simulations with the layered soil water balance watfgdw.    
+    to allow simulations with the layered soil water balance.
+
+    The repair candidate reserves same-day senescence before committing leaf
+    and stem reallocation. Storage biomass receives only committed donor
+    transfers multiplied by REALLOC_EFFICIENCY. Existing fixed donor quotas
+    are retained. This is a daily model, not a general non-unit-delt integrator.
             
     The CropSimulation object organizes the different processes of the crop
     simulation. Moreover, it contains the parameters, rate and state variables

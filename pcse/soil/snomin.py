@@ -14,7 +14,7 @@ from ..traitlets import Float, Int, Instance, Bool
 
 class SNOMIN(SimulationObject):
     """
-    SNOMIN (Soil Nitrogen module for Mineral and Inorganic Nitrogen) is a layered soil nitrogen balance. A
+    SNOMIN (Soil Nitrogen module for Organic and Mineral Nitrogen) is a layered soil nitrogen balance. A
     full mathematical description of the model is given by Berghuijs et al (2024).
 
     Berghuijs HNC, Silva JV, Reidsma P, De Wit AJW (2024) Expanding the WOFOST crop model

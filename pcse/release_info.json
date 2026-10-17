@@ -1,0 +1,31 @@
+{
+  "package": "pcse",
+  "package_version": "6.0.14rc1+wofost81repair",
+  "model_family": "WOFOST",
+  "model_parameter_version": "8.1",
+  "implementation_revision": "repair-rc1",
+  "proposed_model_release": "8.1.1",
+  "official_model_release": false,
+  "status": "RELEASE_CANDIDATE_NOT_ADMITTED",
+  "qualified_base": "498326bead686d531e03d06d939cb02aa2f07e01",
+  "upstream_master": "67a28e56b0e34655f8d60b0b4a254a7c81efbb2f",
+  "included_findings": [
+    "WOFOST81-SNOMIN-01", "WOFOST81-SNOMIN-04", "WOFOST81-NBAL-01",
+    "WOFOST81-REALLOC-01", "WOFOST81-LOGIC-CC01", "WOFOST81-LOGIC-SE01",
+    "WOFOST81-LOGIC-AMEND02", "WOFOST81-LOGIC-IRR01", "WOFOST81-LOGIC-NTRANS01",
+    "WOFOST81-LOGIC-ROT02", "WOFOST81-CONFIG-REALLOC01", "WOFOST81-CONFIG-N01",
+    "WOFOST81-CONFIG-ET01", "WOFOST81-CONFIG-SN01"
+  ],
+  "admission": {
+    "maintainer_review": "PENDING",
+    "official_version_assignment": "PENDING",
+    "upstream_merge": "PENDING",
+    "official_documentation_publication": "PENDING",
+    "swap_migration": "BLOCKED_UNTIL_SOURCE_ADMISSION"
+  },
+  "unchanged_owner_decisions": [
+    "PART-01", "dt=1 day", "spatial root activity",
+    "daily crop-soil coupling order", "RDI/RDMCR/RDMSOL policy"
+  ],
+  "qualification_boundary": "Technical executable invariants and regression tests, not field validation or full raw-suite green status."
+}

@@ -24,6 +24,12 @@ class N_Demand_Uptake(SimulationObject):
     fixed fraction of the daily N demand is supplied by nitrogen fixation.
     The remaining part has to be supplied by the soil.
 
+    The repair candidate reserves N committed to same-day organ senescence
+    and the residual N of the surviving donor before translocation. Each
+    organ transfer is donor-limited; their sum defines the storage transfer.
+    Complete senescence and zero living biomass cannot supply donor N. This
+    does not change spatial root activity or the daily crop-soil coupling order.
+
     The N demand of the storage organs is calculated in a somewhat
     different way because it is assumed that the demand from the storage
     organs is fulfilled by translocation of N/P/K from the leaves, stems

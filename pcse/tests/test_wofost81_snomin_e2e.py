@@ -41,8 +41,7 @@ def _crop_parameters():
 
 
 def _weather():
-    root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    path = os.path.join(root, "tests", "test_data", "test_potentialproduction_wofost72_01.yaml")
+    path = os.path.join(os.path.dirname(__file__), "test_data", "wofost81_qualification_weather.yaml")
     with open(path, encoding="utf-8") as fp:
         data = yaml.safe_load(fp)
     return FixtureWeatherProvider(data["WeatherVariables"])
