@@ -51,11 +51,11 @@ def build_engine():
     return engine
 
 
-def worker(mode,folder):
+def worker(mode,folder,split_days=30):
     folder=Path(folder)
     if mode=="write":
         engine=build_engine()
-        engine.run(days=30)
+        engine.run(days=split_days)
         (folder/"first.json").write_text(json.dumps(record_projection(engine.get_output())))
     elif mode=="resume":
         # New Python process, fresh engine, deterministic replay from initial
@@ -65,7 +65,7 @@ def worker(mode,folder):
         engine.run(days=30)
         if record_projection(engine.get_output())!=expected:
             raise RuntimeError("replayed crop diverged before resume")
-        engine.run(days=30)
+        engine.run(days=60-split_days)
         (folder/"continued.json").write_text(json.dumps(record_projection(engine.get_output())))
     else: raise ValueError(mode)
 
@@ -76,7 +76,7 @@ class SeparateProcessRecoveryByReplay(unittest.TestCase):
             for mode in ("write","resume"):
                 p=subprocess.run([sys.executable,"-m",
                   "pcse.tests.test_wofost81_ext01_process_restart",
-                  "--worker",mode,folder],capture_output=True,text=True)
+                  "--worker",mode,folder,"30"],capture_output=True,text=True)
                 if p.returncode:
                     self.fail(f"Separate-process {mode} failed: {p.stderr[-2500:]}")
             restored=json.loads((Path(folder)/"continued.json").read_text())
@@ -87,8 +87,36 @@ class SeparateProcessRecoveryByReplay(unittest.TestCase):
             print("EXT01_PROCESS_REPLAY_RECOVERY_EQUAL",len(restored))
 
 
+    def test_replay_multiple_split_points_and_tamper_rejection(self):
+        """Actual fresh PCSE engines: alternate splits and corrupted prior receipt."""
+        original,_=new_barley_case()
+        expected=record_projection(original)
+        for split in (10,45):
+            with self.subTest(split=split), tempfile.TemporaryDirectory() as folder:
+                command=[sys.executable,"-m","pcse.tests.test_wofost81_ext01_process_restart","--worker"]
+                for mode in ("write","resume"):
+                    p=subprocess.run(command+[mode,folder,str(split)],capture_output=True,text=True)
+                    self.assertEqual(p.returncode,0,p.stderr[-2500:])
+                actual=json.loads((Path(folder)/"continued.json").read_text())
+                self.assertEqual(actual,expected)
+                self.assertEqual(len(actual),61)
+                print("EXT01_REPLAY_SPLIT_EQUAL",split,len(actual))
+        with tempfile.TemporaryDirectory() as folder:
+            command=[sys.executable,"-m","pcse.tests.test_wofost81_ext01_process_restart","--worker"]
+            first=subprocess.run(command+["write",folder,"30"],capture_output=True,text=True)
+            self.assertEqual(first.returncode,0,first.stderr[-2500:])
+            receipt=Path(folder)/"first.json"
+            rows=json.loads(receipt.read_text())
+            rows[-1]["LAI"]=rows[-1]["LAI"]+0.01
+            receipt.write_text(json.dumps(rows))
+            resumed=subprocess.run(command+["resume",folder,"30"],capture_output=True,text=True)
+            self.assertNotEqual(resumed.returncode,0,"corrupted replay receipt was accepted")
+            self.assertFalse((Path(folder)/"continued.json").exists())
+            self.assertIn("replayed crop diverged before resume",resumed.stderr)
+            print("EXT01_REPLAY_TAMPER_REJECTED")
+
 if __name__=="__main__":
-    if len(sys.argv)==4 and sys.argv[1]=="--worker":
-        worker(sys.argv[2],sys.argv[3])
+    if len(sys.argv)==5 and sys.argv[1]=="--worker":
+        worker(sys.argv[2],sys.argv[3],int(sys.argv[4]))
     else:
         unittest.main()
