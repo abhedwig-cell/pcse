@@ -1,0 +1,21 @@
+{
+  "acceptance": "observed-passing-native-test",
+  "accepted_final_revision": 192,
+  "accepted_lineage_id": 630101,
+  "accepted_t0": 2.0,
+  "accepted_t1": 3.0,
+  "actual_root_uptake_native_integral": 0.0010370706377336118,
+  "calendar_date": null,
+  "independent_matching_confirmations": 3,
+  "matched_accepted_uptake_native_integral": 0.0010370706377336118,
+  "pcse_daily_import_permitted": false,
+  "potential_transpiration_native_integral": 0.0010370706377336118,
+  "reason": "Native units and calendar not independently reconciled with PCSE barley case",
+  "schema": "F-WOF-EXT01/SWAP-WITNESS/3",
+  "source": "test_crop_file_weather_production.f90",
+  "source_calendar_date": "1999-01-23",
+  "source_fortran_day": 2,
+  "source_weather_epoch": "1999-01-20",
+  "unit_conversion_to_cm": null,
+  "witness_column": 1
+}
