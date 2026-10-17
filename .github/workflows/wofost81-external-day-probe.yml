@@ -6,6 +6,7 @@ on:
       - 'pcse/tests/test_wofost81_external_stress_spike.py'
       - 'pcse/tests/test_wofost81_external_soil_off.py'
       - 'pcse/tests/test_wofost81_ext01_new_barley.py'
+      - 'pcse/tests/export_ext01_barley_reference.py'
       - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
       - '.github/workflows/wofost81-external-day-probe.yml'
   workflow_dispatch:
@@ -24,3 +25,15 @@ jobs:
 
       - run: python -m unittest -v pcse.tests.test_wofost81_external_soil_off
       - run: python -m unittest -v pcse.tests.test_wofost81_ext01_new_barley
+      - name: Export new barley crop-only research reference
+        run: python -m pcse.tests.export_ext01_barley_reference ext01-reference
+      - name: Verify deterministic repeat in the same source environment
+        run: |
+          python -m pcse.tests.export_ext01_barley_reference ext01-second
+          cmp ext01-reference/ext01_barley_python_crop_only.csv ext01-second/ext01_barley_python_crop_only.csv
+          cmp ext01-reference/manifest.json ext01-second/manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ext01-new-barley-python-reference-not-admitted
+          path: ext01-reference/
+          if-no-files-found: error
