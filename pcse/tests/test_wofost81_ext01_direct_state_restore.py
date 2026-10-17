@@ -7,6 +7,10 @@ Research-only: deliberately fails if any supplied state is unsupported.
 import datetime as dt
 import json
 import math
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
 import unittest
 from collections import deque
 from pcse.tests.test_wofost81_ext01_process_restart import build_engine, record_projection, internal_crop_projection
@@ -125,4 +129,46 @@ class ActualEngineDirectContinuation(unittest.TestCase):
         with self.assertRaises(ValueError):
             restore(build_engine(),wrong)
         print("EXT01_DIRECT_RESTART_FOREIGN_STATE_REJECTED")
-if __name__=="__main__": unittest.main()
+
+    def test_direct_new_process_restore_at_three_splits(self):
+        baseline=build_engine()
+        baseline.run(days=60)
+        expected=record_projection(baseline.get_output())
+        for split in (10,30,45):
+            with self.subTest(split=split),tempfile.TemporaryDirectory() as folder:
+                command=[sys.executable,"-m","pcse.tests.test_wofost81_ext01_direct_state_restore","--worker"]
+                for action in ("save","resume"):
+                    proc=subprocess.run(command+[action,folder,str(split)],capture_output=True,text=True)
+                    self.assertEqual(proc.returncode,0,proc.stderr[-3000:])
+                result=json.loads((Path(folder)/"continued.json").read_text())
+                self.assertEqual(result["output"],expected)
+                self.assertEqual(result["internal"],internal_crop_projection(baseline))
+                print("EXT01_DIRECT_SEPARATE_PROCESS_RESTART_PASS",split,61)
+
+def worker(action,folder,split):
+    folder=Path(folder)
+    if action=="save":
+        engine=build_engine()
+        engine.run(days=split)
+        (folder/"snapshot.json").write_text(json.dumps(snapshot(engine),allow_nan=False))
+    elif action=="resume":
+        saved=json.loads((folder/"snapshot.json").read_text())
+        engine=build_engine()
+        if engine.timer.day_counter!=0:
+            raise RuntimeError("restore must begin with fresh engine")
+        restore(engine,saved)
+        if engine.timer.day_counter!=split:
+            raise RuntimeError("restored timer mismatch")
+        engine.run(days=60-split)
+        (folder/"continued.json").write_text(json.dumps({
+            "output":record_projection(engine.get_output()),
+            "internal":internal_crop_projection(engine)},allow_nan=False))
+    else:
+        raise ValueError("unknown action")
+
+if __name__=="__main__":
+    if len(sys.argv)==5 and sys.argv[1]=="--worker":
+        worker(sys.argv[2],sys.argv[3],int(sys.argv[4]))
+    else:
+        unittest.main()
+
