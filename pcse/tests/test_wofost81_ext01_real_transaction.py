@@ -184,6 +184,33 @@ class RealCropTransaction(unittest.TestCase):
         self.assertEqual(digest(tx.committed),before)
         print("EXT01_UNATTESTED_REAL_SWAP_PROVENANCE_REJECTED")
 
+    def test_v3_physical_swap_witness_refused_in_actual_pcse_worker(self):
+        # Exact source identity/flux figures were observed in successful
+        # SWAP5 rooted-weather run 39066877106. This is a negative physical
+        # integration gate; dates/forcings are unrelated to barley 2010.
+        witness=dict(schema="F-WOF-EXT01/SWAP-WITNESS/3",
+            accepted_lineage_id=630101,accepted_final_revision=192,
+            accepted_t0=2.0,accepted_t1=3.0,
+            source_weather_epoch="1999-01-20",
+            source_calendar_date="1999-01-23",
+            actual_root_uptake_native_integral=1.0370706377336118e-3,
+            potential_transpiration_native_integral=1.0370706377336118e-3,
+            calendar_date=None,unit_conversion_to_cm=None,
+            pcse_daily_import_permitted=False)
+        tx=CropTransaction(self.day30)
+        before=digest(tx.committed)
+        # Fail closed on source-date mismatch even if caller falsely renames
+        # the physical acceptance as a synthetic crop-day transaction.
+        e=accepted_event(31,hydro_provenance=(
+            f"SWAP5-lineage-{witness['accepted_lineage_id']}-"
+            f"rev-{witness['accepted_final_revision']}"))
+        with self.assertRaises(RuntimeError):
+            tx.prepare(e)
+        self.assertEqual(digest(tx.committed),before)
+        self.assertNotEqual(witness["source_calendar_date"],e["date"])
+        self.assertIsNone(witness["unit_conversion_to_cm"])
+        print("EXT01_REAL_SWAP_V3_WITNESS_PCSE_IMPORT_REJECTED")
+
     def test_invalid_flux_and_failed_worker_do_not_commit(self):
         tx=CropTransaction(self.day30)
         before=digest(tx.committed)
