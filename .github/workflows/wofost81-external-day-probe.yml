@@ -8,6 +8,7 @@ on:
       - 'pcse/tests/test_wofost81_ext01_new_barley.py'
       - 'pcse/tests/export_ext01_barley_reference.py'
       - 'pcse/tests/ext01_barley_performance.py'
+      - 'pcse/tests/test_wofost81_ext01_process_restart.py'
       - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
       - '.github/workflows/wofost81-external-day-probe.yml'
   workflow_dispatch:
@@ -40,3 +41,5 @@ jobs:
           if-no-files-found: error
       - name: Measure three isolated crop-instance costs
         run: python -m pcse.tests.ext01_barley_performance
+      - name: Check real full-PCSE-process checkpoint continuity
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_process_restart
