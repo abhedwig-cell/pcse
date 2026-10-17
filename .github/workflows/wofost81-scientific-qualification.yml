@@ -45,3 +45,24 @@ jobs:
           name: wofost81-wheat-python-provisional
           path: wofo-reference/
           if-no-files-found: error
+
+      - name: Reproduce WOFOST81 reference in two fresh Python environments
+        shell: bash
+        run: |
+          set -euo pipefail
+          for pass in a b; do
+            python -m venv ".venv-ref-$pass"
+            ".venv-ref-$pass/bin/python" -m pip install -e .
+            ".venv-ref-$pass/bin/python" -m pcse.tests.export_wofost81_reference --out "reference-$pass"
+          done
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          for name in ("wofost81_wheat_reference_provisional.json",
+                       "wofost81_wheat_low_mineral_n_provisional.json",
+                       "manifest.json"):
+              first = Path("reference-a", name).read_bytes()
+              second = Path("reference-b", name).read_bytes()
+              assert first == second, f"Different reference bytes: {name}"
+              print("REPRODUCIBLE", name, len(first), hashlib.sha256(first).hexdigest())
+          PY
