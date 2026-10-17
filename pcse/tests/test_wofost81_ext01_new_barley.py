@@ -17,7 +17,7 @@ from pcse.tests.test_wofost81_external_soil_off import ExternalET, ExternalSoilW
 from pcse.tests.test_wofost81_snomin_e2e import _weather, _soil_and_site
 
 
-def new_barley_case():
+def new_barley_case(split_days=None):
     parameters = yaml.safe_load(Path(__file__).with_name("test_data").joinpath(
         "ext01_barley_wofost81_source.yaml").read_text())
     barley = parameters["CropParameters"]["Varieties"]["Spring_barley_301"]
@@ -34,7 +34,12 @@ def new_barley_case():
         m=Engine(ParameterProvider(cropdata=crop,soildata=soil,sitedata=site),
                  _weather(),agro,
                  config=Path(__file__).with_name("data_wofost81_external_soil_off.conf"))
-        m.run(days=60)
+        if split_days is None:
+            m.run(days=60)
+        else:
+            assert 0 < split_days < 60
+            m.run(days=split_days)
+            m.run(days=60-split_days)
         return m.get_output(),m
 
 
@@ -47,3 +52,15 @@ class PinnedBarleyNewCase(unittest.TestCase):
         self.assertTrue(any(row.get("LAI") is not None and row["LAI"]>0 for row in rows))
         self.assertTrue(any(row.get("TAGP") is not None and row["TAGP"]>0 for row in rows))
         print("EXT01_NEW_BARLEY_NOT_PP01",len(rows),rows[-1]["day"])
+
+    def test_continuation_same_live_engine(self):
+        whole,_=new_barley_case()
+        segmented,_=new_barley_case(split_days=30)
+        self.assertEqual(whole,segmented)
+        print("EXT01_BARLEY_IN_PROCESS_CONTINUATION_IDENTICAL",len(whole))
+
+    def test_repeat_two_independent_engines(self):
+        first,_=new_barley_case()
+        second,_=new_barley_case()
+        self.assertEqual(first,second)
+        print("EXT01_BARLEY_TWO_ENGINES_IDENTICAL",len(first))
