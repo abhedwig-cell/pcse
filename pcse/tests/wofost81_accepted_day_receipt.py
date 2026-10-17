@@ -5,6 +5,7 @@ observed fixture witness, not calibrated or aligned to the PCSE crop calendar.
 """
 from dataclasses import dataclass
 import math
+import datetime
 
 
 @dataclass(frozen=True)
@@ -33,3 +34,16 @@ class AcceptedCropDay:
                 raise ValueError("nonzero uptake with zero potential")
             return 0., 0., 1.
         return actual, potential, min(1., actual/potential)
+
+    def require_calendar_alignment(self, crop_day, swap_epoch):
+        """Gate for scientific coupling, not required by portable receipt smoke.
+
+        The SWAP qualification uses relative model days with a 1999 epoch;
+        the PCSE wheat fixture starts in 2010. Refuse accidental comparison.
+        """
+        if not isinstance(crop_day, datetime.date) or not isinstance(swap_epoch, datetime.date):
+            raise ValueError("calendar dates required")
+        expected = swap_epoch + datetime.timedelta(days=self.t0)
+        if crop_day != expected:
+            raise ValueError(f"SWAP event {expected} != PCSE crop day {crop_day}")
+        return True
