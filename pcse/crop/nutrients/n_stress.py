@@ -6,6 +6,9 @@ Class to calculate nitrogen stress factors:
 
 """
 
+from math import isfinite
+
+from ... import exceptions as exc
 from ...traitlets import Float
 from ...util import limit, AfgenTrait
 from ...base import ParamTemplate, SimulationObject, RatesTemplate
@@ -89,7 +92,20 @@ class N_Stress(SimulationObject):
 
         self.kiosk = kiosk
         self.params = self.Parameters(parvalues)
+        self._validate_growth_rates(self.params.RGRLAI, self.params.RGRLAI_MIN)
         self.rates = self.RateVariables(kiosk, publish = ["NSLLV", "RFRGRL"])
+
+    @staticmethod
+    def _validate_growth_rates(rgrlai, rgrlai_min):
+        """Validate the domain required for the N-stress LAI reduction.
+
+        For valid inputs the existing physiological formula is unchanged.
+        """
+        if not (isfinite(rgrlai) and isfinite(rgrlai_min)
+                and rgrlai > 0. and 0. <= rgrlai_min <= rgrlai):
+            raise exc.PCSEError(
+                "N-stress requires 0 <= RGRLAI_MIN <= RGRLAI and RGRLAI > 0."
+            )
 
     @prepare_rates
     def __call__(self, day, drv):
