@@ -194,6 +194,30 @@ class PersistentActualPCSETransaction(unittest.TestCase):
                 reopened.prepare(event)
             print("EXT01_NATIVE_NUMBER_DETACHED_PCSE_ATOMIC_WIRE_TRANSPORT_PASS")
 
+    def test_zero_water_demand_candidate_atomic_rollback_and_recovery(self):
+        from pcse.tests.test_wofost81_ext01_process_restart import build_engine
+        from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
+        model=build_engine()
+        model.run(days=30)
+        with tempfile.TemporaryDirectory() as folder:
+            file=Path(folder)/"committed.json"
+            atomic_save(file,CropTransaction(snapshot(model)))
+            e={**accepted_event(31),"actual_transpiration_cm_day":0.0,
+               "potential_transpiration_cm_day":0.0,"rftra":1.0}
+            proposal=recover(file).prepare(e)
+            before=file.read_bytes()
+            with self.assertRaises(RuntimeError):
+                durable_commit(file,e,proposal,inject_before_replace=True)
+            self.assertEqual(file.read_bytes(),before)
+            self.assertEqual(recover(file).committed["timer_counter"],30)
+            durable_commit(file,e,proposal)
+            reopened=recover(file)
+            self.assertEqual(reopened.committed["published_kiosk"]["TRA"],0.0)
+            self.assertEqual(reopened.committed["published_kiosk"]["TRAMX"],0.0)
+            self.assertEqual(reopened.committed["published_kiosk"]["RFTRA"],1.0)
+            self.assertEqual(len(reopened.receipts),1)
+            print("EXT01_ZERO_DEMAND_DURABLE_RESTART_PASS")
+
     def test_corrupt_journal_refused(self):
         from pcse.tests.test_wofost81_ext01_process_restart import build_engine
         from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
