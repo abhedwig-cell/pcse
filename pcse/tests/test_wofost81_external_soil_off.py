@@ -33,6 +33,15 @@ class ExternalET(SimulationObject):
 
 class ExternalSoilWaterOff(SoilModuleWrapper_PP):
     waterbalance_class=None
+    class RateVariables(RatesTemplate):
+        EVS=Float(0.)
+    def initialize(self, day, kiosk, parvalues):
+        super().initialize(day, kiosk, parvalues)
+        self.rates=self.RateVariables(kiosk,publish=["EVS"])
+        self.rates.EVS=0.0
+    def calc_rates(self, day, drv):
+        super().calc_rates(day,drv)
+        self.rates.EVS=0.0
 
 class ExternalReceiptSmoke(unittest.TestCase):
     def test_crop_calculates_without_pcse_waterbalance(self):
