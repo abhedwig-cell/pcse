@@ -1,13 +1,14 @@
-"""F-WOF-EXT01: genuine separate-process checkpoint/restart feasibility.
+"""F-WOF-EXT01: process-loss recovery by deterministic replay.
 
-Research-only pickle witness. Pickle is NOT a safe/stable external checkpoint
-format and must never be accepted as an official restart codec. Files are
-locally generated and untrusted pickle bytes must never be loaded.
+This is NOT a complete PCSE checkpoint or state snapshot. A previous
+attempt to pickle the PCSE Engine failed on dynamically wrapped rates,
+so the research fallback restarts a *fresh* engine and validates all
+previous outputs before advancing. This requires a full immutable input
+history and incurs replay costs.
 """
 import datetime as dt
 import json
 import os
-import pickle
 import subprocess
 import sys
 import tempfile
@@ -15,12 +16,6 @@ import unittest
 from pathlib import Path
 
 from pcse.tests.test_wofost81_ext01_new_barley import new_barley_case
-
-
-def checkpoint_worker(path):
-    # New engine only; no pre-existing process-global crop state.
-    rows, model = new_barley_case(split_days=30)  # currently advances through 60
-    # This worker is intentionally replaced below to ensure true mid-run capture.
 
 
 def record_projection(records):
@@ -61,20 +56,22 @@ def worker(mode,folder):
     if mode=="write":
         engine=build_engine()
         engine.run(days=30)
-        with (folder/"engine.pickle").open("wb") as handle:
-            pickle.dump(engine,handle,pickle.HIGHEST_PROTOCOL)
         (folder/"first.json").write_text(json.dumps(record_projection(engine.get_output())))
     elif mode=="resume":
-        # Only load own trusted, same-run test artifact; never user-supplied data.
-        with (folder/"engine.pickle").open("rb") as handle:
-            engine=pickle.load(handle)
+        # New Python process, fresh engine, deterministic replay from initial
+        # condition instead of restoring hidden PCSE state.
+        expected=json.loads((folder/"first.json").read_text())
+        engine=build_engine()
+        engine.run(days=30)
+        if record_projection(engine.get_output())!=expected:
+            raise RuntimeError("replayed crop diverged before resume")
         engine.run(days=30)
         (folder/"continued.json").write_text(json.dumps(record_projection(engine.get_output())))
     else: raise ValueError(mode)
 
 
-class FullEngineSeparateProcessRestart(unittest.TestCase):
-    def test_real_process_restart_or_report_blocker(self):
+class SeparateProcessRecoveryByReplay(unittest.TestCase):
+    def test_separate_process_replay_recovery(self):
         with tempfile.TemporaryDirectory() as folder:
             for mode in ("write","resume"):
                 p=subprocess.run([sys.executable,"-m",
@@ -87,7 +84,7 @@ class FullEngineSeparateProcessRestart(unittest.TestCase):
             expected=record_projection(original)
             self.assertEqual(restored,expected)
             self.assertEqual(len(restored),61)
-            print("EXT01_TRUE_PROCESS_RESTART_EQUAL",len(restored))
+            print("EXT01_PROCESS_REPLAY_RECOVERY_EQUAL",len(restored))
 
 
 if __name__=="__main__":
