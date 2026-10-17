@@ -68,7 +68,8 @@ def snapshot(engine):
             "output":record_projection(engine.get_output()),
             "published_kiosk":{k:encode_value(v) for k,v in engine.kiosk.items()},
             "components":components,
-            "leaf_reference":internal_crop_projection(engine)}
+            "leaf_reference":internal_crop_projection(engine),
+            "assimilation_tmin_history":list(engine.crop.assim._TMNSAV)}
 
 def restore(engine,payload):
     if payload["schema"]!=SCHEMA: raise ValueError("incompatible version")
@@ -77,6 +78,13 @@ def restore(engine,payload):
         child=engine.crop if name=="crop" else component(engine.crop,name)
         for kind,values in payload["components"][name].items():
             apply_fields(getattr(child,kind),values)
+    # WOFOST assimilation retains 7-day TMIN history outside ordinary traits.
+    history=payload["assimilation_tmin_history"]
+    if not isinstance(history,list) or len(history)>7 or any(
+        not isinstance(x,(int,float)) or not math.isfinite(x) for x in history
+    ):
+        raise ValueError("invalid TMIN history")
+    engine.crop.assim._TMNSAV=deque(history,maxlen=7)
     engine.day=dt.date.fromisoformat(payload["day"])
     engine.timer.current_date=engine.day
     engine.timer.day_counter=payload["timer_counter"]
