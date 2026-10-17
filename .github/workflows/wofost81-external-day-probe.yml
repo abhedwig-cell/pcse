@@ -7,6 +7,7 @@ on:
       - 'pcse/tests/test_wofost81_external_soil_off.py'
       - 'pcse/tests/test_wofost81_ext01_new_barley.py'
       - 'pcse/tests/export_ext01_barley_reference.py'
+      - 'pcse/tests/ext01_barley_performance.py'
       - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
       - '.github/workflows/wofost81-external-day-probe.yml'
   workflow_dispatch:
@@ -37,3 +38,5 @@ jobs:
           name: ext01-new-barley-python-reference-not-admitted
           path: ext01-reference/
           if-no-files-found: error
+      - name: Measure three isolated crop-instance costs
+        run: python -m pcse.tests.ext01_barley_performance
