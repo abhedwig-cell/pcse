@@ -25,6 +25,21 @@ def record_projection(records):
              for k in keys} for r in records]
 
 
+def internal_crop_projection(engine):
+    """Bounded actual private crop-state witness; NOT a complete state codec."""
+    crop=engine.crop
+    leaf=crop.lv_dynamics.states
+    return dict(
+        day=engine.day.isoformat(),
+        LV=list(leaf.LV), SLA=list(leaf.SLA), LVAGE=list(leaf.LVAGE),
+        LASUM=float(leaf.LASUM), LAIEXP=float(leaf.LAIEXP),
+        LAIMAX=float(leaf.LAIMAX), WLV=float(leaf.WLV),
+        DWLV=float(leaf.DWLV), TWLV=float(leaf.TWLV),
+        DVS=float(crop.pheno.states.DVS),
+        TAGP=float(crop.states.TAGP),
+    )
+
+
 def build_engine():
     import yaml
     from unittest.mock import patch
@@ -57,6 +72,7 @@ def worker(mode,folder,split_days=30):
         engine=build_engine()
         engine.run(days=split_days)
         (folder/"first.json").write_text(json.dumps(record_projection(engine.get_output())))
+        (folder/"internal.json").write_text(json.dumps(internal_crop_projection(engine)))
     elif mode=="resume":
         # New Python process, fresh engine, deterministic replay from initial
         # condition instead of restoring hidden PCSE state.
@@ -65,6 +81,8 @@ def worker(mode,folder,split_days=30):
         engine.run(days=split_days)
         if record_projection(engine.get_output())!=expected:
             raise RuntimeError("replayed crop diverged before resume")
+        if internal_crop_projection(engine)!=json.loads((folder/"internal.json").read_text()):
+            raise RuntimeError("replayed internal leaf state diverged before resume")
         engine.run(days=60-split_days)
         (folder/"continued.json").write_text(json.dumps(record_projection(engine.get_output())))
     else: raise ValueError(mode)
@@ -101,6 +119,7 @@ class SeparateProcessRecoveryByReplay(unittest.TestCase):
                 self.assertEqual(actual,expected)
                 self.assertEqual(len(actual),61)
                 print("EXT01_REPLAY_SPLIT_EQUAL",split,len(actual))
+                self.assertIn("LVAGE",json.loads((Path(folder)/"internal.json").read_text()))
         with tempfile.TemporaryDirectory() as folder:
             command=[sys.executable,"-m","pcse.tests.test_wofost81_ext01_process_restart","--worker"]
             first=subprocess.run(command+["write",folder,"30"],capture_output=True,text=True)
