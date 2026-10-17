@@ -32,7 +32,7 @@ def export(folder):
     assert len({r["day"] for r in rows})==len(rows)
     csv_path=folder/"ext01_barley_python_crop_only.csv"
     with csv_path.open("w",newline="") as f:
-        writer=csv.DictWriter(f,fieldnames=COLUMNS,lineterminator="\\n")
+        writer=csv.DictWriter(f,fieldnames=COLUMNS,lineterminator="\n")
         writer.writeheader(); writer.writerows(rows)
     manifest={
       "admission":"RESEARCH_ONLY_NOT_SCIENTIFICALLY_ADMITTED",
@@ -49,7 +49,7 @@ def export(folder):
       "rows":len(rows),"first_day":rows[0]["day"],"last_day":rows[-1]["day"],"columns":list(COLUMNS),
       "source_commit":subprocess.run(["git","rev-parse","HEAD"],capture_output=True,text=True,check=True).stdout.strip()
     }
-    (folder/"manifest.json").write_text(json.dumps(manifest,sort_keys=True,indent=2)+"\\n")
+    (folder/"manifest.json").write_text(json.dumps(manifest,sort_keys=True,indent=2)+"\n")
     return manifest
 
 if __name__=="__main__":
