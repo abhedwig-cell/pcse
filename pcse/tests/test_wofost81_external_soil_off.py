@@ -12,6 +12,7 @@ from pcse.decorators import prepare_rates
 from pcse.soil.soil_wrappers import SoilModuleWrapper_PP
 from pcse.crop import wofost81
 from pcse.engine import Engine
+from pcse.tests.wofost81_accepted_day_receipt import AcceptedCropDay
 from pcse.tests.test_wofost81_snomin_e2e import _crop_parameters, _soil_and_site, _weather, _agro
 
 class ExternalET(SimulationObject):
@@ -66,15 +67,17 @@ class ExternalReceiptSmoke(unittest.TestCase):
         # ROOTED weather fixture run 39027378775 (case j=1,d=2).
         # SWAP event dates/meteorology differ from PCSE 2010 wheat fixture:
         # portable numeric receipt only, NOT coupled scientific equivalence.
-        actual = 1.0370706377336118e-3
-        potential = 1.0370706377336118e-3
-        self.assertGreater(potential, 0.0)
-        self.assertLessEqual(actual, potential)
+        receipt = AcceptedCropDay(
+            event_id="SWAP5-rooted-weather-j1-d2-accepted",
+            t0=2.0, t1=3.0,
+            actual_root_uptake_cm=1.0370706377336118e-3,
+            potential_transpiration_cm=1.0370706377336118e-3)
+        actual, potential, ratio = receipt.rates()
         observed = []
         def receipt_call(self, day, drv):
             self.rates.TRA = actual
             self.rates.TRAMX = potential
-            self.rates.RFTRA = actual / potential
+            self.rates.RFTRA = ratio
             observed.append((day, self.rates.TRA, self.rates.TRAMX, self.rates.RFTRA))
             return self.rates.TRA, self.rates.TRAMX
         soil,site = _soil_and_site()
@@ -90,3 +93,14 @@ class ExternalReceiptSmoke(unittest.TestCase):
         self.assertTrue(all(t==actual and p==potential and f==1.0 for _,t,p,f in observed))
         self.assertTrue(any(row.get("TAGP") is not None and row["TAGP"]>0 for row in rows))
         print("SWAP5_ACCEPTED_RECEIPT_REPLAY", actual, potential, len(observed))
+
+    def test_real_receipt_domain_refuses_invalid_fluxes(self):
+        from dataclasses import replace
+        r = AcceptedCropDay("accepted", 2., 3., 0., 0.)
+        self.assertEqual(r.rates(), (0.,0.,1.))
+        for invalid in (replace(r,event_id=""), replace(r,t1=2.5),
+                        replace(r,actual_root_uptake_cm=-1.),
+                        replace(r,actual_root_uptake_cm=0.2,potential_transpiration_cm=0.1),
+                        replace(r,actual_root_uptake_cm=float("nan"))):
+            with self.assertRaises(ValueError):
+                invalid.rates()
