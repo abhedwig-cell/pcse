@@ -133,6 +133,20 @@ class SeparateProcessRecoveryByReplay(unittest.TestCase):
             self.assertFalse((Path(folder)/"continued.json").exists())
             self.assertIn("replayed crop diverged before resume",resumed.stderr)
             print("EXT01_REPLAY_TAMPER_REJECTED")
+        with tempfile.TemporaryDirectory() as folder:
+            command=[sys.executable,"-m","pcse.tests.test_wofost81_ext01_process_restart","--worker"]
+            first=subprocess.run(command+["write",folder,"30"],capture_output=True,text=True)
+            self.assertEqual(first.returncode,0,first.stderr[-2500:])
+            receipt=Path(folder)/"internal.json"
+            internal=json.loads(receipt.read_text())
+            self.assertGreater(len(internal["LV"]),0)
+            internal["LV"][0] += 0.01
+            receipt.write_text(json.dumps(internal))
+            resumed=subprocess.run(command+["resume",folder,"30"],capture_output=True,text=True)
+            self.assertNotEqual(resumed.returncode,0,"corrupted internal cohort was accepted")
+            self.assertFalse((Path(folder)/"continued.json").exists())
+            self.assertIn("replayed internal leaf state diverged",resumed.stderr)
+            print("EXT01_INTERNAL_LEAF_COHORT_TAMPER_REJECTED")
 
 if __name__=="__main__":
     if len(sys.argv)==5 and sys.argv[1]=="--worker":
