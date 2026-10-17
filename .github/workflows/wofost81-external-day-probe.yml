@@ -4,6 +4,7 @@ on:
     paths:
       - 'pcse/tests/test_wofost81_external_day_probe.py'
       - 'pcse/tests/test_wofost81_external_stress_spike.py'
+      - 'pcse/tests/test_wofost81_external_soil_off.py'
       - '.github/workflows/wofost81-external-day-probe.yml'
   workflow_dispatch:
 jobs:
@@ -18,3 +19,5 @@ jobs:
       - run: python -m pip install -e .
       - run: python -m unittest -v pcse.tests.test_wofost81_external_day_probe
       - run: python -m unittest -v pcse.tests.test_wofost81_external_stress_spike
+
+      - run: python -m unittest -v pcse.tests.test_wofost81_external_soil_off
