@@ -1,0 +1,111 @@
+"""Research-only durable PCSE crop receipt+state transaction store.
+
+The filesystem journal is the authority, never an in-memory updated CropTransaction.
+This is a crash-injection test, NOT a power-loss/durable-filesystem qualification.
+"""
+import hashlib
+import json
+import os
+import tempfile
+import unittest
+from pathlib import Path
+from pcse.tests.test_wofost81_ext01_real_transaction import (
+    CropTransaction, RealCropTransaction, accepted_event, canon, digest
+)
+
+STORE_SCHEMA="F-WOF-EXT01/CROP-ATOMIC-RESEARCH/1"
+
+def package(tx):
+    payload={"schema":STORE_SCHEMA,"committed":tx.committed,"receipts":tx.receipts}
+    return {"payload":payload,"checksum":digest(payload)}
+
+def recover(path):
+    obj=json.loads(Path(path).read_text())
+    if set(obj)!={"payload","checksum"} or digest(obj["payload"])!=obj["checksum"]:
+        raise ValueError("corrupted committed crop journal")
+    payload=obj["payload"]
+    if set(payload)!={"schema","committed","receipts"} or payload["schema"]!=STORE_SCHEMA:
+        raise ValueError("incompatible committed crop journal")
+    if not isinstance(payload["receipts"],dict):
+        raise ValueError("invalid committed event receipts")
+    tx=CropTransaction(payload["committed"])
+    tx.receipts=payload["receipts"].copy()
+    return tx
+
+def atomic_save(path,tx,inject_before_replace=False):
+    path=Path(path)
+    fd,tmp=tempfile.mkstemp(prefix=".crop-tx-",dir=path.parent)
+    try:
+        with os.fdopen(fd,"w") as stream:
+            stream.write(canon(package(tx))+"\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        if inject_before_replace:
+            raise RuntimeError("injected failure before atomic publication")
+        os.replace(tmp,path)
+        dirfd=os.open(path.parent,os.O_RDONLY)
+        try: os.fsync(dirfd)
+        finally: os.close(dirfd)
+    finally:
+        if os.path.exists(tmp): os.unlink(tmp)
+
+def durable_commit(path,event,prepared,inject_before_replace=False):
+    tx=recover(path)
+    tx.commit(event,prepared)
+    atomic_save(path,tx,inject_before_replace)
+    return recover(path)
+
+class PersistentActualPCSETransaction(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.day30=RealCropTransaction.day30 if hasattr(RealCropTransaction,"day30") else None
+
+    def test_atomic_candidate_receipt_commit_and_crash_recovery(self):
+        if self.day30 is None:
+            from pcse.tests.test_wofost81_ext01_process_restart import build_engine
+            from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
+            model=build_engine()
+            model.run(days=30)
+            original=snapshot(model)
+        else: original=self.day30
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/"committed.json"
+            atomic_save(path,CropTransaction(original))
+            event=accepted_event(31)
+            before=path.read_bytes()
+            first=recover(path).prepare(event)
+            self.assertEqual(path.read_bytes(),before)
+            with self.assertRaisesRegex(RuntimeError,"injected failure"):
+                durable_commit(path,event,first,inject_before_replace=True)
+            self.assertEqual(path.read_bytes(),before)
+            self.assertEqual(recover(path).receipts,{})
+            durable_commit(path,event,first)
+            restored=recover(path)
+            self.assertEqual(restored.committed["timer_counter"],31)
+            self.assertEqual(restored.receipts[event["event_id"]],digest(event))
+            with self.assertRaises(ValueError):
+                restored.prepare(event)
+            with self.assertRaises(ValueError):
+                durable_commit(path,event,first)
+            later=accepted_event(32)
+            candidate=restored.prepare(later)
+            durable_commit(path,later,candidate)
+            self.assertEqual(recover(path).committed["timer_counter"],32)
+            self.assertEqual(len(recover(path).receipts),2)
+            self.assertEqual(list(Path(folder).glob(".crop-tx-*")),[])
+            print("EXT01_DURABLE_CROP_STATE_RECEIPT_ATOMIC_PASS")
+
+    def test_corrupt_journal_refused(self):
+        from pcse.tests.test_wofost81_ext01_process_restart import build_engine
+        from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
+        model=build_engine()
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/"committed.json"
+            atomic_save(path,CropTransaction(snapshot(model)))
+            obj=json.loads(path.read_text())
+            obj["payload"]["receipts"]["forged"]="fake"
+            path.write_text(canon(obj))
+            with self.assertRaises(ValueError): recover(path)
+            print("EXT01_DURABLE_CROP_JOURNAL_TAMPER_REJECTED")
+if __name__=="__main__":
+    unittest.main()
