@@ -161,6 +161,39 @@ class PersistentActualPCSETransaction(unittest.TestCase):
             self.assertEqual(recover(journal).committed["timer_counter"],31)
             print("EXT01_DURABLE_TWO_PROCESS_COMMIT_RACE_PASS")
 
+    def test_native_number_research_transport_and_durable_commit(self):
+        """End-to-end numerical wire test, not an accepted SWAP-PCSE joint day."""
+        from pcse.tests.test_wofost81_ext01_process_restart import build_engine
+        from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
+        model=build_engine()
+        model.run(days=30)
+        witness=json.loads((Path(__file__).parent/"test_data"/
+                            "ext01_swap5_native_accepted_witness_v3.json").read_text())
+        self.assertFalse(witness["pcse_daily_import_permitted"])
+        self.assertIsNone(witness["unit_conversion_to_cm"])
+        native=witness["actual_root_uptake_native_integral"]
+        self.assertEqual(native,witness["potential_transpiration_native_integral"])
+        event={**accepted_event(31),
+               "actual_transpiration_cm_day":native,
+               "potential_transpiration_cm_day":native,"rftra":1.0}
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/"committed.json"
+            atomic_save(path,CropTransaction(snapshot(model)))
+            original=path.read_bytes()
+            proposed=recover(path).prepare(event)
+            self.assertEqual(path.read_bytes(),original)
+            self.assertEqual(proposed["candidate"]["published_kiosk"]["TRA"],native)
+            with self.assertRaises(RuntimeError):
+                durable_commit(path,event,proposed,inject_before_replace=True)
+            self.assertEqual(path.read_bytes(),original)
+            durable_commit(path,event,proposed)
+            reopened=recover(path)
+            self.assertEqual(reopened.committed["published_kiosk"]["TRA"],native)
+            self.assertEqual(reopened.receipts[event["event_id"]],digest(event))
+            with self.assertRaises(ValueError):
+                reopened.prepare(event)
+            print("EXT01_NATIVE_NUMBER_DETACHED_PCSE_ATOMIC_WIRE_TRANSPORT_PASS")
+
     def test_corrupt_journal_refused(self):
         from pcse.tests.test_wofost81_ext01_process_restart import build_engine
         from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
