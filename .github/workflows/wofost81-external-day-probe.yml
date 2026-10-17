@@ -9,6 +9,7 @@ on:
       - 'pcse/tests/export_ext01_barley_reference.py'
       - 'pcse/tests/ext01_barley_performance.py'
       - 'pcse/tests/test_wofost81_ext01_process_restart.py'
+      - 'pcse/tests/test_wofost81_ext01_state_codec_preflight.py'
       - 'pcse/tests/export_ext01_fortran_input.py'
       - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
       - '.github/workflows/wofost81-external-day-probe.yml'
@@ -44,6 +45,8 @@ jobs:
         run: python -m pcse.tests.ext01_barley_performance
       - name: Check real full-PCSE-process checkpoint continuity
         run: python -m unittest -v pcse.tests.test_wofost81_ext01_process_restart
+      - name: Check bounded real PCSE leaf cohort codec and malformed-state refusal
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_state_codec_preflight
       - name: Export complete aligned-source input package for SWAP5 Fortran research
         run: |
           python -m pcse.tests.export_ext01_fortran_input ext01-fortran-input
