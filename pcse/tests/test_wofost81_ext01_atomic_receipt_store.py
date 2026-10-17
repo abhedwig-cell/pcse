@@ -4,6 +4,8 @@ The filesystem journal is the authority, never an in-memory updated CropTransact
 This is a crash-injection test, NOT a power-loss/durable-filesystem qualification.
 """
 import hashlib
+import fcntl
+from contextlib import contextmanager
 import json
 import os
 import tempfile
@@ -49,11 +51,26 @@ def atomic_save(path,tx,inject_before_replace=False):
     finally:
         if os.path.exists(tmp): os.unlink(tmp)
 
+@contextmanager
+def journal_writer_lock(path):
+    # Advisory, process-wide Linux lock; do not unlink the lock inode.
+    lockfile=str(path)+".lock"
+    with open(lockfile,"a+b") as stream:
+        fcntl.flock(stream.fileno(),fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(stream.fileno(),fcntl.LOCK_UN)
+
 def durable_commit(path,event,prepared,inject_before_replace=False):
-    tx=recover(path)
-    tx.commit(event,prepared)
-    atomic_save(path,tx,inject_before_replace)
-    return recover(path)
+    # Lock the read/validate/replace/recover interval as a single writer
+    # transaction. Without this lock two independent processes can read the
+    # same preimage then silently overwrite one another's accepted receipt.
+    with journal_writer_lock(path):
+        tx=recover(path)
+        tx.commit(event,prepared)
+        atomic_save(path,tx,inject_before_replace)
+        return recover(path)
 
 class PersistentActualPCSETransaction(unittest.TestCase):
     @classmethod
@@ -94,6 +111,30 @@ class PersistentActualPCSETransaction(unittest.TestCase):
             self.assertEqual(len(recover(path).receipts),2)
             self.assertEqual(list(Path(folder).glob(".crop-tx-*")),[])
             print("EXT01_DURABLE_CROP_STATE_RECEIPT_ATOMIC_PASS")
+
+    def test_two_independent_writers_do_not_both_commit_stale_preimage(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from pcse.tests.test_wofost81_ext01_process_restart import build_engine
+        from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
+        model=build_engine()
+        model.run(days=30)
+        with tempfile.TemporaryDirectory() as folder:
+            path=Path(folder)/"committed.json"
+            atomic_save(path,CropTransaction(snapshot(model)))
+            e=accepted_event(31)
+            candidate=recover(path).prepare(e)
+            def writer(_):
+                try:
+                    return durable_commit(path,e,candidate).committed["timer_counter"]
+                except ValueError:
+                    return "rejected"
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                results=list(pool.map(writer,range(2)))
+            self.assertCountEqual(results,[31,"rejected"])
+            recovered=recover(path)
+            self.assertEqual(len(recovered.receipts),1)
+            self.assertEqual(recovered.committed["timer_counter"],31)
+            print("EXT01_DURABLE_CONCURRENT_STALE_WRITER_REJECTED")
 
     def test_corrupt_journal_refused(self):
         from pcse.tests.test_wofost81_ext01_process_restart import build_engine
