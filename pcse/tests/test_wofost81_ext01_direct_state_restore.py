@@ -12,7 +12,14 @@ from collections import deque
 from pcse.tests.test_wofost81_ext01_process_restart import build_engine, record_projection, internal_crop_projection
 from pcse.tests.test_wofost81_ext01_direct_restart_inventory import COMPONENTS
 
-SCHEMA="F-WOF-EXT01/DIRECT-RESTART-EXPERIMENT/1"
+SCHEMA="F-WOF-EXT01/DIRECT-RESTART-EXPERIMENT/2"
+COMPONENT_PATHS=(*COMPONENTS,"n_crop_dynamics.demand_uptake")
+
+def component(crop,path):
+    obj=crop
+    for name in path.split("."):
+        obj=getattr(obj,name)
+    return obj
 
 def encode_value(value):
     if isinstance(value,dt.date): return {"date":value.isoformat()}
@@ -46,8 +53,8 @@ def apply_fields(target,values):
 def snapshot(engine):
     crop=engine.crop
     components={}
-    for name in COMPONENTS:
-        child=getattr(crop,name)
+    for name in COMPONENT_PATHS:
+        child=component(crop,name)
         components[name]={kind:fields(getattr(child,kind))
                           for kind in ("states","rates") if getattr(child,kind,None) is not None}
     components["crop"]={kind:fields(getattr(crop,kind))
@@ -61,9 +68,9 @@ def snapshot(engine):
 
 def restore(engine,payload):
     if payload["schema"]!=SCHEMA: raise ValueError("incompatible version")
-    if set(payload["components"])!=set(COMPONENTS)|{"crop"}: raise ValueError("component drift")
-    for name in (*COMPONENTS,"crop"):
-        child=engine.crop if name=="crop" else getattr(engine.crop,name)
+    if set(payload["components"])!=set(COMPONENT_PATHS)|{"crop"}: raise ValueError("component drift")
+    for name in (*COMPONENT_PATHS,"crop"):
+        child=engine.crop if name=="crop" else component(engine.crop,name)
         for kind,values in payload["components"][name].items():
             apply_fields(getattr(child,kind),values)
     engine.day=dt.date.fromisoformat(payload["day"])
