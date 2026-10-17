@@ -9,7 +9,7 @@ FILES={
  "experiment":"pcse/tests/test_wofost81_ext01_new_barley.py",
  "external_provider":"pcse/tests/test_wofost81_external_soil_off.py",
  "configuration":"pcse/tests/data_wofost81_external_soil_off.conf"}
-COLUMNS=("day","DVS","LAI","TAGP","TRA","NuptakeTotal")
+COLUMNS=("day","DVS","LAI","TAGP","TRA","NuptakeTotal","TWLV","TWRT","TWST","TWSO","NamountLV","NamountRT","NamountST","NamountSO")
 
 def digest(p):
     return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
@@ -47,7 +47,8 @@ def export(folder):
       "sources_sha256":{k:digest(ROOT/v) for k,v in FILES.items()},
       "output_sha256":digest(csv_path),
       "rows":len(rows),"first_day":rows[0]["day"],"last_day":rows[-1]["day"],"columns":list(COLUMNS),
-      "source_commit":subprocess.run(["git","rev-parse","HEAD"],capture_output=True,text=True,check=True).stdout.strip()
+      "ci_checkout_sha":subprocess.run(["git","rev-parse","HEAD"],capture_output=True,text=True,check=True).stdout.strip(),
+      "ci_checkout_note":"GitHub pull_request checkout may use synthetic merge SHA; see source hashes and PR head for original research source."
     }
     (folder/"manifest.json").write_text(json.dumps(manifest,sort_keys=True,indent=2)+"\n")
     return manifest
