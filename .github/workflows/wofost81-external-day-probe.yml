@@ -9,6 +9,7 @@ on:
       - 'pcse/tests/export_ext01_barley_reference.py'
       - 'pcse/tests/ext01_barley_performance.py'
       - 'pcse/tests/test_wofost81_ext01_process_restart.py'
+      - 'pcse/tests/export_ext01_fortran_input.py'
       - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
       - '.github/workflows/wofost81-external-day-probe.yml'
   workflow_dispatch:
@@ -43,3 +44,15 @@ jobs:
         run: python -m pcse.tests.ext01_barley_performance
       - name: Check real full-PCSE-process checkpoint continuity
         run: python -m unittest -v pcse.tests.test_wofost81_ext01_process_restart
+      - name: Export complete aligned-source input package for SWAP5 Fortran research
+        run: |
+          python -m pcse.tests.export_ext01_fortran_input ext01-fortran-input
+          python -m pcse.tests.export_ext01_fortran_input ext01-fortran-input-again
+          cmp ext01-fortran-input/pcse_daily_fortran_boundary.csv ext01-fortran-input-again/pcse_daily_fortran_boundary.csv
+          cmp ext01-fortran-input/crop_parameter_values.json ext01-fortran-input-again/crop_parameter_values.json
+          cmp ext01-fortran-input/manifest.json ext01-fortran-input-again/manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ext01-fortran-input-research-not-admitted
+          path: ext01-fortran-input/
+          if-no-files-found: error
