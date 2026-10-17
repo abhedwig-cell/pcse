@@ -1,5 +1,5 @@
-"""Research spike: inject a synthetic accepted transpiration ratio into real PCSE.
-Still runs PCSE soil water and SNOMIN: NOT a SWAP soil replacement.
+"""Research spike: inject a synthetic crop stress ratio into real PCSE.
+Still runs PCSE soil water and SNOMIN; TRA stays soil-owned. NOT a SWAP soil replacement.
 """
 import unittest
 from unittest.mock import patch
@@ -17,8 +17,7 @@ class ExternalStressSpike(unittest.TestCase):
             tramx = rates.TRAMX
             if tramx is not None and tramx > 0:
                 rates.RFTRA = 0.5
-                rates.TRA = 0.5 * rates.TRAMX
-                seen.append((day, rates.TRA, rates.TRAMX))
+                seen.append((day, rates.TRA, rates.TRAMX, rates.RFTRA))
                 return result
             return result
         with patch.object(EvapotranspirationWrapper, "__call__", inject):
@@ -28,5 +27,5 @@ class ExternalStressSpike(unittest.TestCase):
         vals = [(a["TAGP"],b["TAGP"]) for a,b in zip(reference,stressed)
                 if a.get("TAGP") is not None and b.get("TAGP") is not None]
         self.assertTrue(any(abs(a-b)>1e-7 for a,b in vals))
-        self.assertTrue(all(abs(tra-.5*tramx)<1e-10 for _,tra,tramx in seen))
+        self.assertTrue(all(abs(rftra-.5)<1e-10 for _,tra,tramx,rftra in seen))
         print("REAL_ET_INJECTION",len(seen),vals[-1])
