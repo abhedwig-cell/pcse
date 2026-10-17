@@ -50,13 +50,21 @@ class TestSimulationObject(SimulationObject):
         # some simobject do not provide a `calc_rates()` function but are directly callable
         # here we check for those cases.
         func = self.subsimobject if callable(self.subsimobject) else self.subsimobject.calc_rates
-        if not self.kiosk.is_external_state("DVS"):
-            func(day, drv)
+        if not self.kiosk.is_external_state("DVS") or self.kiosk.DVS >= 0:
+            value = func(day, drv)
+            # Historical WOFOST72 assimilation returns PGASS directly.
+            # Its RatesTemplate declares PGASS but does not assign it.
+            # Preserve the production routine and publish the legacy test rate.
+            from pcse.crop.assimilation import WOFOST72_Assimilation
+            if isinstance(self.subsimobject, WOFOST72_Assimilation):
+                rates = self.subsimobject.rates
+                rates.unlock()
+                try:
+                    rates.PGASS = value
+                finally:
+                    rates.lock()
         else:
-            if self.kiosk.DVS >= 0:
-                func(day, drv)
-            else:
-                self.subsimobject.zerofy()
+            self.subsimobject.zerofy()
 
     def integrate(self, day, delt=1.0):
         # If the simobject is callable, we do not need integration so we use the `nothing()` function.

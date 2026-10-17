@@ -21,6 +21,9 @@ jobs:
       - name: Run WOFOST81 scientific qualification tests
         run: python -m unittest -v pcse.tests.test_snomin_scientific pcse.tests.test_wofost81_reallocation_scientific pcse.tests.test_wofost81_snomin_e2e pcse.tests.test_wofost81_deep_logic pcse.tests.test_partitioning pcse.tests.test_respiration pcse.tests.test_wofost81_nstress_domain
 
+      - name: Reproduce historical WOFOST72 PGASS YAML regression
+        run: python -m unittest -v tests.test_assimilation_yaml_regression
+
       - name: Run legacy WOFOST full-model regression envelope
         run: |
           python - <<'PY'
