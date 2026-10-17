@@ -155,6 +155,21 @@ class RealCropTransaction(unittest.TestCase):
         self.assertNotEqual(digest(low.committed),digest(high.committed))
         print("EXT01_REAL_PCSE_DISTINCT_ACCEPTED_ET_CONSUMED_PASS")
 
+    def test_actual_swap_receipt_requires_calendar_alignment(self):
+        from pcse.tests.wofost81_accepted_day_receipt import AcceptedCropDay
+        from datetime import date
+        receipt=AcceptedCropDay(
+            "SWAP5-rooted-weather-j1-d2-accepted",2.0,3.0,
+            1.0370706377336118e-3,1.0370706377336118e-3)
+        a,p,ratio=receipt.rates()
+        self.assertEqual((a,p,ratio),(a,a,1.0))
+        self.assertTrue(receipt.require_calendar_alignment(date(1999,1,23),date(1999,1,21)))
+        with self.assertRaisesRegex(ValueError,"SWAP event"):
+            receipt.require_calendar_alignment(date.fromisoformat(self.day30["day"]),date(1999,1,21))
+        # No fabricated mapping from the 1999 SWAP certificate into the 2010
+        # PCSE barley date: an accepted hydrological receipt alone is insufficient.
+        print("EXT01_AUTHENTIC_SWAP_RECEIPT_CALENDAR_MISMATCH_REJECTED")
+
     def test_invalid_flux_and_failed_worker_do_not_commit(self):
         tx=CropTransaction(self.day30)
         before=digest(tx.committed)
