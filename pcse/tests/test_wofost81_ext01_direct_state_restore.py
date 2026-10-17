@@ -55,6 +55,7 @@ def snapshot(engine):
     return {"schema":SCHEMA,"day":engine.day.isoformat(),
             "timer_counter":engine.timer.day_counter,"timer_first_call":engine.timer.first_call,
             "output":record_projection(engine.get_output()),
+            "published_kiosk":{k:encode_value(v) for k,v in engine.kiosk.items()},
             "components":components,
             "leaf_reference":internal_crop_projection(engine)}
 
@@ -70,6 +71,14 @@ def restore(engine,payload):
     engine.timer.day_counter=payload["timer_counter"]
     engine.timer.first_call=payload["timer_first_call"]
     engine.drv=engine._get_driving_variables(engine.day)
+    # The fresh Engine cannot reconstruct rate publications just from traits.
+    published=set(engine.kiosk.published_rates)|set(engine.kiosk.published_states)
+    if not set(payload["published_kiosk"]).issubset(published):
+        raise ValueError("foreign kiosk variables")
+    engine.kiosk.flush_rates()
+    engine.kiosk.flush_states()
+    for name,value in payload["published_kiosk"].items():
+        dict.__setitem__(engine.kiosk,name,decode_value(value,None))
     # Output history serves test comparison only; not a scientific crop state.
     engine._saved_output=[{k:dt.date.fromisoformat(v) if k=="day" else v
                           for k,v in row.items()} for row in payload["output"]]
