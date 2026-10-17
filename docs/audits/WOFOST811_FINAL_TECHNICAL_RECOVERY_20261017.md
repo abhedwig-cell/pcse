@@ -12,7 +12,7 @@ Candidate branch: `work/wofost811-nstress-final-qualification-20261017`.
 
 ## What has NOT been qualified
 
-No installed-PCSE runtime test, source checkout, or full YAML run was possible in this qualification attempt. The focused tests are **added but not executed**. Neither the working branch nor the reference release candidate is admitted for production or SWAP translation.
+The first GitHub PR qualification completed successfully at commit `2bc78eb` (run `38992512544`). The workflow was then extended to run the focused N-stress tests. GitHub Actions run `38992800900` on commit `9632969` **succeeded**, including PCSE installation, the focused N-stress domain tests, existing scientific/E2E tests and the canonical WOFOST72 regressions. No full YAML run or exact before/after WOFOST81 daily-series equivalence comparison was performed. Neither this limited qualification nor the merge of this fix constitutes scientific admission of WOFOST 8.1.1 or permission for SWAP translation.
 
 The source contains other zero denominators:
 - `NamountABG`: validity/reachability of an all-zero living-aboveground crop-N pool remains unresolved; do not silently substitute an epsilon.
@@ -25,8 +25,8 @@ The old `WOFOST72_Assimilation.__call__` returns `PGASS` directly; the generic Y
 
 ## Required next execution evidence
 
-1. Install the existing candidate on an execution host and run `python -m unittest -v pcse.tests.test_wofost81_nstress_domain` on this branch.
-2. Run one genuine WOFOST81 lifecycle with validated reference wheat parameters and check the baseline daily output remains identical.
+1. DONE: Run the focused N-stress parameter tests and existing WOFOST81 scientific/E2E tests through PR CI (`38992800900`, success). The E2E fixture exercises a complete reference wheat lifecycle, but the CI does not compare complete daily series byte-for-byte to the parent commit.
+2. OPEN: Prove strict before/after WOFOST81 daily-series preservation if exact-equivalence admission is required; note the added validation is inactive for the known valid reference parameters.
 3. Reproduce one historical assimilation YAML case and compare direct return, exposed rate, and stored output across the wrapper. Fix the test harness only after causal confirmation.
 4. Construct valid reachable zero/near-zero crop-N cases and define their scientific contract; obtain owner decision before implementing a zero-N behavior.
 5. Run only affected tests, then use the existing admission review; preserve PART-01 as a model-owner decision.
