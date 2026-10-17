@@ -13,16 +13,14 @@ class ExternalStressSpike(unittest.TestCase):
         seen = []
         def inject(self, day, drv):
             result = original(self, day, drv)
-            if result is None:
-                return None
-            tra, tramx = result
             rates = self.etmodule.rates
+            tramx = rates.TRAMX
             if tramx is not None and tramx > 0:
                 rates.RFTRA = 0.5
                 rates.TRA = 0.5 * rates.TRAMX
                 seen.append((day, rates.TRA, rates.TRAMX))
-                return rates.TRA, rates.TRAMX
-            return tra, tramx
+                return result
+            return result
         with patch.object(EvapotranspirationWrapper, "__call__", inject):
             stressed = _run()
         self.assertGreater(len(seen), 5)
