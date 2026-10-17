@@ -46,8 +46,20 @@ def candidate_worker(request):
     validate_event(e,prior)
     model=build_engine()
     restore(model,prior)
-    model.run(days=1)
+    # Apply the accepted event to the *actual* PCSE external ET rate provider,
+    # instead of merely validating an envelope and using fixed 0.5 stress.
+    from unittest.mock import patch
+    from pcse.tests.test_wofost81_external_soil_off import ExternalET
+    def accepted_et(self, day, drv):
+        self.rates.TRA=e["actual_transpiration_cm_day"]
+        self.rates.TRAMX=e["potential_transpiration_cm_day"]
+        self.rates.RFTRA=e["rftra"]
+        return self.rates.TRA,self.rates.TRAMX
+    with patch.object(ExternalET,"__call__",accepted_et):
+        model.run(days=1)
     next_state=snapshot(model)
+    if abs(next_state["published_kiosk"]["RFTRA"]-e["rftra"])>1e-12:
+        raise RuntimeError("accepted flux not consumed by actual crop")
     if next_state["timer_counter"]!=e["day"]: raise AssertionError("bad phase")
     return {"schema":SCHEMA,"event_id":e["event_id"],"event_digest":digest(e),
             "prior_digest":digest(prior),"candidate_digest":digest(next_state),"candidate":next_state}
@@ -121,6 +133,23 @@ class RealCropTransaction(unittest.TestCase):
         self.assertEqual(digest(tx.committed),baseline)
         tx.commit(event,prepared)
         print("EXT01_REAL_PCSE_CANDIDATE_TAMPER_REJECTED")
+
+    def test_distinct_valid_accepted_fluxes_reach_real_pcse(self):
+        low=CropTransaction(self.day30)
+        high=CropTransaction(self.day30)
+        e_low=accepted_event(31)
+        e_high={**accepted_event(31),
+                "actual_transpiration_cm_day":.30,"rftra":1.0}
+        low_candidate=low.prepare(e_low)
+        high_candidate=high.prepare(e_high)
+        self.assertEqual(low_candidate["candidate"]["published_kiosk"]["RFTRA"],.5)
+        self.assertEqual(high_candidate["candidate"]["published_kiosk"]["RFTRA"],1.0)
+        self.assertNotEqual(low_candidate["candidate_digest"],high_candidate["candidate_digest"])
+        self.assertEqual(digest(low.committed),digest(high.committed))
+        low.commit(e_low,low_candidate)
+        high.commit(e_high,high_candidate)
+        self.assertNotEqual(digest(low.committed),digest(high.committed))
+        print("EXT01_REAL_PCSE_DISTINCT_ACCEPTED_ET_CONSUMED_PASS")
 
     def test_invalid_flux_and_failed_worker_do_not_commit(self):
         tx=CropTransaction(self.day30)
