@@ -12,7 +12,10 @@ class ExternalStressSpike(unittest.TestCase):
         original = EvapotranspirationWrapper.__call__
         seen = []
         def inject(self, day, drv):
-            tra, tramx = original(self, day, drv)
+            result = original(self, day, drv)
+            if result is None:
+                return None
+            tra, tramx = result
             rates = self.etmodule.rates
             if tramx is not None and tramx > 0:
                 rates.RFTRA = 0.5
