@@ -4,6 +4,7 @@ This deliberately patches PCSE composition within an isolated test process.
 It is not an application API, nor a qualified SWAP interface.
 """
 from pathlib import Path
+import datetime
 import unittest
 from unittest.mock import patch
 from pcse.base import ParameterProvider, SimulationObject, RatesTemplate
@@ -104,3 +105,15 @@ class ExternalReceiptSmoke(unittest.TestCase):
                         replace(r,actual_root_uptake_cm=float("nan"))):
             with self.assertRaises(ValueError):
                 invalid.rates()
+
+    def test_common_day_gate_refuses_fixture_calendar_mismatch(self):
+        receipt=AcceptedCropDay(
+            event_id="SWAP5-rooted-weather-j1-d2-accepted",
+            t0=2.,t1=3.,
+            actual_root_uptake_cm=1.0370706377336118e-3,
+            potential_transpiration_cm=1.0370706377336118e-3)
+        swap_epoch=datetime.date(1999,1,21)
+        self.assertTrue(receipt.require_calendar_alignment(
+            datetime.date(1999,1,23),swap_epoch))
+        with self.assertRaisesRegex(ValueError,"SWAP event"):
+            receipt.require_calendar_alignment(datetime.date(2010,4,16),swap_epoch)
