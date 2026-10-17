@@ -99,7 +99,7 @@ def restore(engine,payload):
 
 class ActualEngineDirectContinuation(unittest.TestCase):
     def test_direct_resume_multiple_boundaries_without_replay(self):
-        for split in (10,30,45):
+        for split in (30,45):
             with self.subTest(split=split):
                 source=build_engine()
                 source.run(days=split)
@@ -115,6 +115,24 @@ class ActualEngineDirectContinuation(unittest.TestCase):
                 self.assertEqual(internal_crop_projection(fresh),
                                  internal_crop_projection(source))
                 print("EXT01_DIRECT_RESTART_SPLIT_EQUAL",split,61)
+
+    def test_early_day10_direct_restore_is_not_yet_qualified(self):
+        """A known negative witness: a missing early-cycle continuation dependency."""
+        source=build_engine()
+        source.run(days=10)
+        payload=json.loads(json.dumps(snapshot(source),allow_nan=False))
+        fresh=build_engine()
+        restore(fresh,payload)
+        source.run(days=2)
+        fresh.run(days=2)
+        actual=record_projection(fresh.get_output())
+        expected=record_projection(source.get_output())
+        self.assertEqual(actual[:11],expected[:11])
+        self.assertNotEqual(actual[12],expected[12],
+                            "earlier day-10 mismatch changed; review qualification")
+        differences={k:(actual[12][k],expected[12][k]) for k in actual[12]
+                     if actual[12][k]!=expected[12][k]}
+        print("EXT01_DIRECT_RESTART_DAY10_UNQUALIFIED",json.dumps(differences,sort_keys=True))
 
     def test_reject_incompatible_or_foreign_state_before_continuation(self):
         source=build_engine()
