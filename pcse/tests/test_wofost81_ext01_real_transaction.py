@@ -50,7 +50,7 @@ def candidate_worker(request):
     next_state=snapshot(model)
     if next_state["timer_counter"]!=e["day"]: raise AssertionError("bad phase")
     return {"schema":SCHEMA,"event_id":e["event_id"],"event_digest":digest(e),
-            "prior_digest":digest(prior),"candidate":next_state}
+            "prior_digest":digest(prior),"candidate_digest":digest(next_state),"candidate":next_state}
 
 def external_prepare(event,committed):
     request={"schema":SCHEMA,"event":event,"committed":committed}
@@ -75,7 +75,8 @@ class CropTransaction:
         if ident in self.receipts: raise ValueError("duplicate event")
         if (candidate["schema"]!=SCHEMA or candidate["event_id"]!=ident or
             candidate["event_digest"]!=digest(event) or
-            candidate["prior_digest"]!=digest(self.committed)):
+            candidate["prior_digest"]!=digest(self.committed) or
+            candidate["candidate_digest"]!=digest(candidate["candidate"])):
             raise ValueError("stale or foreign candidate")
         if candidate["candidate"]["timer_counter"]!=event["day"]:
             raise ValueError("wrong candidate day")
@@ -108,6 +109,19 @@ class RealCropTransaction(unittest.TestCase):
         self.assertEqual(tx.committed["output"],self.expected)
         self.assertEqual(tx.committed["timer_counter"],33)
         print("EXT01_REAL_PCSE_TRANSACTION_3_DAYS_PASS")
+    def test_modified_candidate_is_rejected_without_commit(self):
+        tx=CropTransaction(self.day30)
+        event=accepted_event(31)
+        prepared=tx.prepare(event)
+        corrupted=copy.deepcopy(prepared)
+        corrupted["candidate"]["timer_counter"]=999
+        baseline=digest(tx.committed)
+        with self.assertRaises(ValueError):
+            tx.commit(event,corrupted)
+        self.assertEqual(digest(tx.committed),baseline)
+        tx.commit(event,prepared)
+        print("EXT01_REAL_PCSE_CANDIDATE_TAMPER_REJECTED")
+
     def test_invalid_flux_and_failed_worker_do_not_commit(self):
         tx=CropTransaction(self.day30)
         before=digest(tx.committed)
