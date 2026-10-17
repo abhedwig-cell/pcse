@@ -25,7 +25,9 @@ def decode_value(value,prior):
     if isinstance(value,dict) and set(value)=={"date"}: return dt.date.fromisoformat(value["date"])
     if isinstance(value,list):
         result=[decode_value(x,None) for x in value]
-        return deque(result) if isinstance(prior,deque) else result
+        if isinstance(prior,deque): return deque(result)
+        if isinstance(prior,tuple) and hasattr(prior,"_fields"): return type(prior)(*result)
+        return result
     return value
 
 def fields(source):
