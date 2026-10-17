@@ -39,7 +39,10 @@ def validate_event(e,prior):
     a,p,r=(e[k] for k in ("actual_transpiration_cm_day","potential_transpiration_cm_day","rftra"))
     if any(not isinstance(x,(int,float)) or isinstance(x,bool) or not math.isfinite(x) for x in (a,p,r)):
         raise ValueError("invalid flux")
-    if not (p>0 and 0<=a<=p and 0<=r<=1) or abs(a/p-r)>1e-12:
+    if p==0:
+        if a!=0 or r!=1:
+            raise ValueError("zero potential demands zero actual and RFTRA=1")
+    elif not (0<=a<=p and 0<=r<=1) or abs(a/p-r)>1e-12:
         raise ValueError("flux inconsistency")
     if not e["hydro_provenance"]: raise ValueError("missing provenance")
     # Synthetic inputs remain explicitly research-only. This worker has no
@@ -242,11 +245,26 @@ class RealCropTransaction(unittest.TestCase):
         self.assertEqual(len(tx.receipts),1)
         print("EXT01_NATIVE_ACCEPTED_NUMBER_TO_REAL_PCSE_RESEARCH_TRANSPORT_ONLY_PASS")
 
+    def test_zero_potential_dry_crop_day_commits_without_spurious_stress(self):
+        tx=CropTransaction(self.day30)
+        event={**accepted_event(31),"actual_transpiration_cm_day":0.0,
+               "potential_transpiration_cm_day":0.0,"rftra":1.0}
+        old=digest(tx.committed)
+        proposal=tx.prepare(event)
+        self.assertEqual(digest(tx.committed),old)
+        self.assertEqual(proposal["candidate"]["published_kiosk"]["TRA"],0.0)
+        self.assertEqual(proposal["candidate"]["published_kiosk"]["TRAMX"],0.0)
+        self.assertEqual(proposal["candidate"]["published_kiosk"]["RFTRA"],1.0)
+        tx.commit(event,proposal)
+        self.assertEqual(tx.committed["timer_counter"],31)
+        with self.assertRaises(ValueError): tx.commit(event,proposal)
+        print("EXT01_REAL_PCSE_ZERO_POTENTIAL_DAY_PASS")
+
     def test_invalid_flux_and_failed_worker_do_not_commit(self):
         tx=CropTransaction(self.day30)
         before=digest(tx.committed)
         for change in ({"rftra":.9},{"actual_transpiration_cm_day":.4},
-                       {"potential_transpiration_cm_day":0},{"day":32},
+                       {"potential_transpiration_cm_day":0},{"actual_transpiration_cm_day":0.0,"potential_transpiration_cm_day":0.0,"rftra":0.0},{"day":32},
                        {"date":"1999-01-23"}):
             with self.subTest(change=change),self.assertRaises(RuntimeError):
                 tx.prepare({**accepted_event(31),**change})
