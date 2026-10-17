@@ -42,6 +42,11 @@ def validate_event(e,prior):
     if not (p>0 and 0<=a<=p and 0<=r<=1) or abs(a/p-r)>1e-12:
         raise ValueError("flux inconsistency")
     if not e["hydro_provenance"]: raise ValueError("missing provenance")
+    # Synthetic inputs remain explicitly research-only. This worker has no
+    # authentic SWAP acceptance authority or attestation verifier yet, so
+    # it must refuse any event pretending to be physically SWAP-admitted.
+    if e["hydro_provenance"]!="synthetic-barley-research":
+        raise ValueError("unverified physical SWAP provenance not admissible")
 
 def candidate_worker(request):
     if request.get("schema")!=SCHEMA: raise ValueError("schema")
@@ -169,6 +174,15 @@ class RealCropTransaction(unittest.TestCase):
         # No fabricated mapping from the 1999 SWAP certificate into the 2010
         # PCSE barley date: an accepted hydrological receipt alone is insufficient.
         print("EXT01_AUTHENTIC_SWAP_RECEIPT_CALENDAR_MISMATCH_REJECTED")
+
+    def test_claimed_swap5_acceptance_cannot_bypass_provenance_gate(self):
+        tx=CropTransaction(self.day30)
+        before=digest(tx.committed)
+        forged=accepted_event(31,hydro_provenance="SWAP5-accepted-column-1")
+        with self.assertRaises(RuntimeError):
+            tx.prepare(forged)
+        self.assertEqual(digest(tx.committed),before)
+        print("EXT01_UNATTESTED_REAL_SWAP_PROVENANCE_REJECTED")
 
     def test_invalid_flux_and_failed_worker_do_not_commit(self):
         tx=CropTransaction(self.day30)
