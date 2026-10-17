@@ -4,6 +4,7 @@ The physical flux numbers remain synthetic in this test. This tests actual PCSE
 candidate state, NOT SWAP5's production accepted hydrology/event publication.
 """
 import copy
+import datetime as dt
 import hashlib
 import json
 import math
@@ -23,15 +24,18 @@ def digest(o):
 
 def accepted_event(day, hydro_provenance="synthetic-barley-research"):
     return dict(event_id=f"crop-day-{day:03d}",day=day,
+        date=(dt.date(2010,4,16)+dt.timedelta(days=day)).isoformat(),
         hydro_provenance=hydro_provenance,actual_transpiration_cm_day=.15,
         potential_transpiration_cm_day=.30,rftra=.5)
 
 def validate_event(e,prior):
-    if set(e)!={"event_id","day","hydro_provenance","actual_transpiration_cm_day",
+    if set(e)!={"event_id","day","date","hydro_provenance","actual_transpiration_cm_day",
                "potential_transpiration_cm_day","rftra"}:
         raise ValueError("event contract")
     if e["day"]!=prior["timer_counter"]+1 or e["event_id"]!=f"crop-day-{e['day']:03d}":
         raise ValueError("out of order event")
+    if e["date"]!=(dt.date.fromisoformat(prior["day"])+dt.timedelta(days=1)).isoformat():
+        raise ValueError("crop date and accepted hydro event date mismatch")
     a,p,r=(e[k] for k in ("actual_transpiration_cm_day","potential_transpiration_cm_day","rftra"))
     if any(not isinstance(x,(int,float)) or isinstance(x,bool) or not math.isfinite(x) for x in (a,p,r)):
         raise ValueError("invalid flux")
@@ -155,7 +159,8 @@ class RealCropTransaction(unittest.TestCase):
         tx=CropTransaction(self.day30)
         before=digest(tx.committed)
         for change in ({"rftra":.9},{"actual_transpiration_cm_day":.4},
-                       {"potential_transpiration_cm_day":0},{"day":32}):
+                       {"potential_transpiration_cm_day":0},{"day":32},
+                       {"date":"1999-01-23"}):
             with self.subTest(change=change),self.assertRaises(RuntimeError):
                 tx.prepare({**accepted_event(31),**change})
             self.assertEqual(digest(tx.committed),before)
