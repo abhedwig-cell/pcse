@@ -35,3 +35,13 @@ jobs:
           result = unittest.TextTestRunner(verbosity=2).run(suite())
           raise SystemExit(0 if result.wasSuccessful() else 1)
           PY
+
+      - name: Export provisional WOFOST81 wheat reference traces
+        run: python -m pcse.tests.export_wofost81_reference --out wofo-reference
+
+      - name: Preserve provisional Python reference artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wofost81-wheat-python-provisional
+          path: wofo-reference/
+          if-no-files-found: error
