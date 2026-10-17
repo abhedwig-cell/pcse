@@ -14,6 +14,8 @@ on:
       - 'pcse/tests/test_wofost81_ext01_direct_state_restore.py'
       - 'pcse/tests/test_wofost81_ext01_real_transaction.py'
       - 'pcse/tests/test_wofost81_ext01_physical_1999_identity.py'
+      - 'pcse/tests/test_wofost81_ext01_observed_1999_pair.py'
+      - 'pcse/tests/test_data/ext01_swap5_1999_source_weather_observed.json'
       - 'pcse/tests/test_wofost81_ext01_atomic_receipt_store.py'
       - 'pcse/tests/export_ext01_fortran_input.py'
       - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
@@ -58,6 +60,8 @@ jobs:
         run: python -m unittest -v pcse.tests.test_wofost81_ext01_direct_state_restore
       - name: Reject unqualified 1999 SWAP physical crop receipt
         run: python -m unittest -v pcse.tests.test_wofost81_ext01_physical_1999_identity
+      - name: Pair authentic 1999 weather and physical acceptance without permitting crop import
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_observed_1999_pair
       - name: Qualify actual PCSE detached crop transaction boundary
         run: python -m unittest -v pcse.tests.test_wofost81_ext01_real_transaction
       - name: Test atomic real-PCSE crop-state and event receipt persistence
