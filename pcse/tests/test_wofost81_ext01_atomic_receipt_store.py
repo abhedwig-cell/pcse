@@ -8,6 +8,8 @@ import fcntl
 from contextlib import contextmanager
 import json
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -136,6 +138,29 @@ class PersistentActualPCSETransaction(unittest.TestCase):
             self.assertEqual(recovered.committed["timer_counter"],31)
             print("EXT01_DURABLE_CONCURRENT_STALE_WRITER_REJECTED")
 
+    def test_two_separate_processes_racing_same_real_crop_event(self):
+        from pcse.tests.test_wofost81_ext01_process_restart import build_engine
+        from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
+        model=build_engine()
+        model.run(days=30)
+        with tempfile.TemporaryDirectory() as folder:
+            journal=Path(folder)/"committed.json"
+            request=Path(folder)/"request.json"
+            atomic_save(journal,CropTransaction(snapshot(model)))
+            event=accepted_event(31)
+            candidate=recover(journal).prepare(event)
+            request.write_text(canon({"event":event,"candidate":candidate}))
+            cmd=[sys.executable,"-m","pcse.tests.test_wofost81_ext01_atomic_receipt_store",
+                 "--commit-worker",str(journal),str(request)]
+            workers=[subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+                     for _ in range(2)]
+            results=[p.communicate(timeout=30) for p in workers]
+            statuses=sorted(p.returncode for p in workers)
+            self.assertEqual(statuses,[0,3],results)
+            self.assertEqual(len(recover(journal).receipts),1)
+            self.assertEqual(recover(journal).committed["timer_counter"],31)
+            print("EXT01_DURABLE_TWO_PROCESS_COMMIT_RACE_PASS")
+
     def test_corrupt_journal_refused(self):
         from pcse.tests.test_wofost81_ext01_process_restart import build_engine
         from pcse.tests.test_wofost81_ext01_direct_state_restore import snapshot
@@ -149,4 +174,11 @@ class PersistentActualPCSETransaction(unittest.TestCase):
             with self.assertRaises(ValueError): recover(path)
             print("EXT01_DURABLE_CROP_JOURNAL_TAMPER_REJECTED")
 if __name__=="__main__":
-    unittest.main()
+    if len(sys.argv)==4 and sys.argv[1]=="--commit-worker":
+        try:
+            payload=json.loads(Path(sys.argv[3]).read_text())
+            durable_commit(sys.argv[2],payload["event"],payload["candidate"])
+        except ValueError:
+            sys.exit(3)
+    else:
+        unittest.main()
