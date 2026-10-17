@@ -1,0 +1,49 @@
+name: WOFOST81 Final Source Package Qualification
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/wofost81-final-package-qualification.yml'
+      - 'pcse/**'
+      - 'setup.py'
+      - 'pyproject.toml'
+  workflow_dispatch:
+
+jobs:
+  installed-distribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build wheel and sdist from the same pinned checkout
+        run: |
+          python -m pip install build
+          python -m build
+          ls -l dist/
+      - name: Qualify installed wheel outside source directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$PWD"
+          python -m venv /tmp/wofo-wheel-check
+          /tmp/wofo-wheel-check/bin/python -m pip install "$ROOT"/dist/*.whl
+          cd /tmp
+          /tmp/wofo-wheel-check/bin/python -m pcse.tests.qualification
+          /tmp/wofo-wheel-check/bin/python -m unittest -v pcse.tests.test_wofost81_nstress_domain pcse.tests.test_wofost81_nzero_reachability
+      - name: Qualify installed source distribution outside source directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$PWD"
+          python -m venv /tmp/wofo-sdist-check
+          /tmp/wofo-sdist-check/bin/python -m pip install "$ROOT"/dist/*.tar.gz
+          cd /tmp
+          /tmp/wofo-sdist-check/bin/python -m pcse.tests.qualification
+      - name: Preserve built candidate distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: wofo81-unadmitted-final-source-packages
+          path: dist/
+          if-no-files-found: error
