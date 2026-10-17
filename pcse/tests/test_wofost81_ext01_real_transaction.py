@@ -209,6 +209,39 @@ class RealCropTransaction(unittest.TestCase):
         self.assertNotEqual(witness["source_calendar_date"],e["date"])
         print("EXT01_ACTUAL_SWAP5_ACTIONS_ARTIFACT_PCSE_IMPORT_REJECTED")
 
+    def test_authentic_native_flux_value_transport_in_relabelled_research_day(self):
+        """Numerical wire-transport only; deliberately NOT coupled physics.
+
+        Value is read from the exact immutable SWAP5 accepted V3 artifact,
+        but research day/crop and provenance remain explicitly synthetic.
+        The actual SWAP 1999 event is NEVER represented as a 2010 acceptance.
+        """
+        from pathlib import Path
+        witness=json.loads((Path(__file__).parent/"test_data"/
+                            "ext01_swap5_native_accepted_witness_v3.json").read_text())
+        self.assertEqual(witness["source_calendar_date"],"1999-01-23")
+        self.assertFalse(witness["pcse_daily_import_permitted"])
+        self.assertIsNone(witness["unit_conversion_to_cm"])
+        native=witness["actual_root_uptake_native_integral"]
+        self.assertEqual(native,witness["potential_transpiration_native_integral"])
+        # Numerical value remains in research-only presumed cm/day units,
+        # NOT an authorized physical native-to-PCSE conversion.
+        transport={**accepted_event(31),
+                   "actual_transpiration_cm_day":native,
+                   "potential_transpiration_cm_day":native,
+                   "rftra":1.0}
+        tx=CropTransaction(self.day30)
+        old=digest(tx.committed)
+        prepared=tx.prepare(transport)
+        self.assertEqual(digest(tx.committed),old)
+        self.assertEqual(prepared["candidate"]["published_kiosk"]["TRA"],native)
+        self.assertEqual(prepared["candidate"]["published_kiosk"]["TRAMX"],native)
+        self.assertEqual(prepared["candidate"]["published_kiosk"]["RFTRA"],1.0)
+        tx.commit(transport,prepared)
+        self.assertEqual(tx.committed["timer_counter"],31)
+        self.assertEqual(len(tx.receipts),1)
+        print("EXT01_NATIVE_ACCEPTED_NUMBER_TO_REAL_PCSE_RESEARCH_TRANSPORT_ONLY_PASS")
+
     def test_invalid_flux_and_failed_worker_do_not_commit(self):
         tx=CropTransaction(self.day30)
         before=digest(tx.committed)
