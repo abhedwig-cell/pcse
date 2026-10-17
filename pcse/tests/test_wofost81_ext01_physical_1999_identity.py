@@ -12,6 +12,7 @@ import unittest
 
 FIXTURE = Path(__file__).with_name("test_data") / "ext01_swap5_native_accepted_witness_v3.json"
 SCHEMA = "F-WOF-EXT01/SWAP-WITNESS/3"
+EXPECTED_FIXTURE_SHA256 = "fee55bb5d84cf0a366a1444097fdac878c895eacb42288ecaf1051289ef3f1c8"
 
 def canonical_1999_preflight(raw, *, expected_date, expected_lineage,
                              expected_revision, expected_sha256):
@@ -54,7 +55,8 @@ def canonical_1999_preflight(raw, *, expected_date, expected_lineage,
 class TestPhysical1999Identity(unittest.TestCase):
     def setUp(self):
         self.raw = FIXTURE.read_bytes()
-        self.sha = hashlib.sha256(self.raw).hexdigest()
+        self.sha = EXPECTED_FIXTURE_SHA256
+        self.assertEqual(hashlib.sha256(self.raw).hexdigest(), self.sha)
         self.kw = dict(expected_date=date(1999, 1, 23), expected_lineage=630101,
                        expected_revision=192, expected_sha256=self.sha)
 
