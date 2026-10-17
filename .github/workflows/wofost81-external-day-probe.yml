@@ -5,6 +5,8 @@ on:
       - 'pcse/tests/test_wofost81_external_day_probe.py'
       - 'pcse/tests/test_wofost81_external_stress_spike.py'
       - 'pcse/tests/test_wofost81_external_soil_off.py'
+      - 'pcse/tests/test_wofost81_ext01_new_barley.py'
+      - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
       - '.github/workflows/wofost81-external-day-probe.yml'
   workflow_dispatch:
 jobs:
@@ -21,3 +23,4 @@ jobs:
       - run: python -m unittest -v pcse.tests.test_wofost81_external_stress_spike
 
       - run: python -m unittest -v pcse.tests.test_wofost81_external_soil_off
+      - run: python -m unittest -v pcse.tests.test_wofost81_ext01_new_barley
