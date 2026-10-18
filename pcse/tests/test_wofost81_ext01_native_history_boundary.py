@@ -2,6 +2,8 @@
 import copy
 import datetime as dt
 import unittest
+import json
+from pathlib import Path
 from pcse.tests.ext01_swap5_native_weather_sequence import (
     SCHEMA, require_native_sequence, pcse_weather_provider_from_native
 )
@@ -20,6 +22,15 @@ class TestSevenDays(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"not scientifically established"):
             pcse_weather_provider_from_native(specimen())
         print("EXT01_SEVEN_DAY_NATIVE_HISTORY_CANNOT_PRETEND_PCSE_FORCING")
+    def test_actual_seven_day_fortran_source_log_fixture(self):
+        source=Path(__file__).with_name('test_data')/'ext01_swap5_native_1999_weather_sequence.json'
+        rows=require_native_sequence(json.loads(source.read_text()))
+        self.assertEqual(len(rows),7)
+        self.assertEqual(rows[3]['date'],'1999-01-23')
+        self.assertAlmostEqual(rows[3]['tmin_c'],-2.8)
+        self.assertEqual(rows[3]['radiation_j_m2_day'],794000)
+        print('EXT01_REAL_SEVEN_DAY_NATIVE_WEATHER_IMPORTED_WITHOUT_PCSE_SCIENCE_ADMISSION')
+
     def test_missing_day_or_forged_calendar_refused(self):
         w=specimen()
         w["records"].pop(2)
