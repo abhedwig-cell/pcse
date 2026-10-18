@@ -12,7 +12,7 @@ FIELDS={"date","tmin_c","tmax_c","rain_native","etref_native","radiation_j_m2_da
 def require_native_sequence(envelope):
     if envelope.get("schema")!=SCHEMA:
         raise ValueError("unknown native weather sequence schema")
-    if envelope.get("independent_repetitions")!=2:
+    if (not isinstance(envelope.get("independent_repetitions"),int) or\n            isinstance(envelope.get("independent_repetitions"),bool) or\n            envelope["independent_repetitions"]<2):
         raise ValueError("independent physical repeated source proof missing")
     if envelope.get("unit_conversion_to_pcse_qualified") is not False:
         raise ValueError("unqualified conversion asserted")
