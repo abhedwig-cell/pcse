@@ -1,0 +1,15 @@
+{
+  "schema": "F-WOF-EXT01/SWAP-SOURCE-WEATHER/1",
+  "date": "1999-01-23",
+  "source": "native-file-weather-record",
+  "tmin_c": -2.8,
+  "tmax_c": 2.1,
+  "rain_source_units": 0.3,
+  "reference_et_source_units": 0.0797,
+  "radiation_source_j_m2_day": 794000,
+  "pcse_weather_conversion_qualified": false,
+  "pcse_crop_day_admitted": false,
+  "source_run_id": 39077771719,
+  "source_head": "e8798f05e3c46e702b70e98a756c0ba63f666ec9",
+  "source_attestation": "Observed identical values in physical Fortran output; research-only not independently validated crop forcing."
+}

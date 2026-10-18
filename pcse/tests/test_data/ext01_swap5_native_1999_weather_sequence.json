@@ -1,0 +1,66 @@
+{
+  "schema": "F-WOF-EXT01/SWAP-1999-WEATHER-SEQUENCE/1",
+  "source": "real accepted-hydrology production Fortran test",
+  "independent_repetitions": 6,
+  "records": [
+    {
+      "date": "1999-01-20",
+      "tmin_c": 3.2,
+      "tmax_c": 7.7,
+      "rain_native": 0,
+      "etref_native": 0.2355,
+      "radiation_j_m2_day": 1896500
+    },
+    {
+      "date": "1999-01-21",
+      "tmin_c": 3.8,
+      "tmax_c": 7,
+      "rain_native": 1.4,
+      "etref_native": 0.1085,
+      "radiation_j_m2_day": 869300
+    },
+    {
+      "date": "1999-01-22",
+      "tmin_c": 2.9,
+      "tmax_c": 6.6,
+      "rain_native": 0,
+      "etref_native": 0.3428,
+      "radiation_j_m2_day": 2813100
+    },
+    {
+      "date": "1999-01-23",
+      "tmin_c": -2.8,
+      "tmax_c": 2.1,
+      "rain_native": 0.3,
+      "etref_native": 0.0797,
+      "radiation_j_m2_day": 794000
+    },
+    {
+      "date": "1999-01-24",
+      "tmin_c": -5.2,
+      "tmax_c": 2.9,
+      "rain_native": 1.4,
+      "etref_native": 0.076,
+      "radiation_j_m2_day": 797000
+    },
+    {
+      "date": "1999-01-25",
+      "tmin_c": -2.8,
+      "tmax_c": 5,
+      "rain_native": 2.8,
+      "etref_native": 0.0781,
+      "radiation_j_m2_day": 746400
+    },
+    {
+      "date": "1999-01-26",
+      "tmin_c": 2.5,
+      "tmax_c": 7.2,
+      "rain_native": 2,
+      "etref_native": 0.342,
+      "radiation_j_m2_day": 2808600
+    }
+  ],
+  "unit_conversion_to_pcse_qualified": false,
+  "crop_initial_state_matched": false,
+  "physical_crop_coupling_admitted": false
+}

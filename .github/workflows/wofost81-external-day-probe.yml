@@ -1,0 +1,85 @@
+name: WOFOST81 real Python day boundary probe
+on:
+  pull_request:
+    paths:
+      - 'pcse/tests/test_wofost81_external_day_probe.py'
+      - 'pcse/tests/test_wofost81_external_stress_spike.py'
+      - 'pcse/tests/test_wofost81_external_soil_off.py'
+      - 'pcse/tests/test_wofost81_ext01_new_barley.py'
+      - 'pcse/tests/export_ext01_barley_reference.py'
+      - 'pcse/tests/ext01_barley_performance.py'
+      - 'pcse/tests/test_wofost81_ext01_process_restart.py'
+      - 'pcse/tests/test_wofost81_ext01_state_codec_preflight.py'
+      - 'pcse/tests/test_wofost81_ext01_direct_restart_inventory.py'
+      - 'pcse/tests/test_wofost81_ext01_direct_state_restore.py'
+      - 'pcse/tests/test_wofost81_ext01_real_transaction.py'
+      - 'pcse/tests/test_wofost81_ext01_physical_1999_identity.py'
+      - 'pcse/tests/test_wofost81_ext01_observed_1999_pair.py'
+      - 'pcse/tests/ext01_swap5_native_weather_sequence.py'
+      - 'pcse/tests/test_wofost81_ext01_native_history_boundary.py'
+      - 'pcse/tests/test_data/ext01_swap5_native_1999_weather_sequence.json'
+      - 'pcse/tests/test_data/ext01_swap5_1999_source_weather_observed.json'
+      - 'pcse/tests/test_wofost81_ext01_atomic_receipt_store.py'
+      - 'pcse/tests/export_ext01_fortran_input.py'
+      - 'pcse/tests/test_data/ext01_barley_wofost81_source.yaml'
+      - '.github/workflows/wofost81-external-day-probe.yml'
+  workflow_dispatch:
+jobs:
+  actual-pcse-one-day:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e .
+      - run: python -m unittest -v pcse.tests.test_wofost81_external_day_probe
+      - run: python -m unittest -v pcse.tests.test_wofost81_external_stress_spike
+
+      - run: python -m unittest -v pcse.tests.test_wofost81_external_soil_off
+      - run: python -m unittest -v pcse.tests.test_wofost81_ext01_new_barley
+      - name: Export new barley crop-only research reference
+        run: python -m pcse.tests.export_ext01_barley_reference ext01-reference
+      - name: Verify deterministic repeat in the same source environment
+        run: |
+          python -m pcse.tests.export_ext01_barley_reference ext01-second
+          cmp ext01-reference/ext01_barley_python_crop_only.csv ext01-second/ext01_barley_python_crop_only.csv
+          cmp ext01-reference/manifest.json ext01-second/manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ext01-new-barley-python-reference-not-admitted
+          path: ext01-reference/
+          if-no-files-found: error
+      - name: Measure three isolated crop-instance costs
+        run: python -m pcse.tests.ext01_barley_performance
+      - name: Check real full-PCSE-process checkpoint continuity
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_process_restart
+      - name: Check bounded real PCSE leaf cohort codec and malformed-state refusal
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_state_codec_preflight
+      - name: Inspect actual PCSE direct restart dependency surface
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_direct_restart_inventory
+      - name: Test real experimental engine continuation without replay
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_direct_state_restore
+      - name: Reject unqualified 1999 SWAP physical crop receipt
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_physical_1999_identity
+      - name: Pair authentic 1999 weather and physical acceptance without permitting crop import
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_observed_1999_pair
+      - name: Refuse incomplete Jan 1999 native history and fabricated PCSE weather
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_native_history_boundary
+      - name: Qualify actual PCSE detached crop transaction boundary
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_real_transaction
+      - name: Test atomic real-PCSE crop-state and event receipt persistence
+        run: python -m unittest -v pcse.tests.test_wofost81_ext01_atomic_receipt_store
+      - name: Export complete aligned-source input package for SWAP5 Fortran research
+        run: |
+          python -m pcse.tests.export_ext01_fortran_input ext01-fortran-input
+          python -m pcse.tests.export_ext01_fortran_input ext01-fortran-input-again
+          cmp ext01-fortran-input/pcse_daily_fortran_boundary.csv ext01-fortran-input-again/pcse_daily_fortran_boundary.csv
+          cmp ext01-fortran-input/crop_parameter_values.json ext01-fortran-input-again/crop_parameter_values.json
+          cmp ext01-fortran-input/manifest.json ext01-fortran-input-again/manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ext01-fortran-input-research-not-admitted
+          path: ext01-fortran-input/
+          if-no-files-found: error
