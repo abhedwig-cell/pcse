@@ -17,6 +17,7 @@ on:
       - 'pcse/tests/test_wofost81_ext01_observed_1999_pair.py'
       - 'pcse/tests/ext01_swap5_native_weather_sequence.py'
       - 'pcse/tests/test_wofost81_ext01_native_history_boundary.py'
+      - 'pcse/tests/test_data/ext01_swap5_native_1999_weather_sequence.json'
       - 'pcse/tests/test_data/ext01_swap5_1999_source_weather_observed.json'
       - 'pcse/tests/test_wofost81_ext01_atomic_receipt_store.py'
       - 'pcse/tests/export_ext01_fortran_input.py'
